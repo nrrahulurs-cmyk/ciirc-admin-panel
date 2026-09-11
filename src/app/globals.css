@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-page: #f4f7fb;
+    --bg-app: rgba(255, 255, 255, 0.92);
+    --border-app: rgba(50, 90, 160, 0.09);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --ciirc-blue: #0066cc;
+  }
+
+  .dark {
+    --bg-page: #080c16;
+    --bg-app: rgba(15, 23, 42, 0.92);
+    --border-app: rgba(30, 41, 59, 0.85);
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --ciirc-blue: #38a9f8;
+  }
+
+  * {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+}
+
+/* Atmospheric clean background - subtle ambient tint without harsh dark corners or blotches */
+.ciirc-atmospheric-bg {
+  background-color: #f6f8fb;
+  background-image: 
+    linear-gradient(180deg, #f8fafd 0%, #edf3f9 100%);
+}
+
+.dark .ciirc-atmospheric-bg {
+  background-color: #070b14;
+  background-image: 
+    linear-gradient(180deg, #090e1a 0%, #050810 100%);
+}
+
+/* Unified Card System */
+.ref-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.025);
+  transition: transform 180ms ease-out, border-color 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+.ref-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(191, 219, 254, 0.9);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.045);
+}
+
+.dark .ref-card {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(30, 41, 59, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.dark .ref-card:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Glass dropdowns & command modal */
+.glass-dropdown {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 12px 36px -4px rgba(15, 23, 42, 0.08);
+}
+
+.dark .glass-dropdown {
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(30, 41, 59, 0.9);
+  box-shadow: 0 12px 40px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* Universal Button System */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 35px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  background-color: #0066cc;
+  box-shadow: 0 1px 2px rgba(0, 102, 204, 0.2);
+  transition: all 160ms ease-out;
+}
+
+.btn-primary:hover {
+  background-color: #0055b3;
+  box-shadow: 0 3px 10px rgba(0, 102, 204, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 35px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: #334155;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  transition: all 160ms ease-out;
+}
+
+.dark .btn-secondary {
+  color: #cbd5e1;
+  background-color: #0f172a;
+  border-color: #334155;
+}
+
+.btn-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.dark .btn-secondary:hover {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #ffffff;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
