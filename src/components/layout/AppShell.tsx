@@ -22,6 +22,7 @@ import { AnalyticsView } from "../analytics/AnalyticsView";
 import { UsersRbacView } from "../admin/UsersRbacView";
 import { AuditLogsView } from "../admin/AuditLogsView";
 import { SystemSettingsView } from "../admin/SystemSettingsView";
+import { CIIRCIntro } from "../intro/CIIRCIntro";
 
 function AppShellContent() {
   const { toast } = useToast();
@@ -31,6 +32,20 @@ function AppShellContent() {
 
   // Default to Light Mode as primary per reference
   const [isDark, setIsDark] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const forceIntro = params.get("intro") === "true";
+      const hasSeenIntro = localStorage.getItem("ciirc_intro_seen");
+      if (forceIntro || !hasSeenIntro) {
+        setShowIntro(true);
+      }
+    } catch (err) {
+      console.warn("Intro check error:", err);
+    }
+  }, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ciirc-theme");
@@ -82,6 +97,7 @@ function AppShellContent() {
             isDark={isDark}
             onToggleTheme={toggleTheme}
             onSelectModule={(mod) => setCurrentModule(mod)}
+            onReplayIntro={() => setShowIntro(true)}
           />
 
           {/* Main Workspace Body */}
@@ -155,6 +171,14 @@ function AppShellContent() {
         defaultType={quickCreateType || "researcher"}
         onClose={() => setQuickCreateType(null)}
       />
+
+      {/* Cinematic First-Launch Intro Experience */}
+      {showIntro && (
+        <CIIRCIntro
+          onComplete={() => setShowIntro(false)}
+          isDark={isDark}
+        />
+      )}
     </div>
   );
 }

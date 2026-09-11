@@ -8,6 +8,7 @@ import {
   Moon,
   Shield,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { ModuleId } from "@/types";
 import { requiresAttentionItems } from "@/data/mockData";
@@ -19,6 +20,7 @@ interface TopBarProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onSelectModule: (module: ModuleId) => void;
+  onReplayIntro?: () => void;
 }
 
 export function TopBar({
@@ -27,6 +29,7 @@ export function TopBar({
   isDark,
   onToggleTheme,
   onSelectModule,
+  onReplayIntro,
 }: TopBarProps) {
   const { toast } = useToast();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -157,6 +160,18 @@ export function TopBar({
                 <Settings className="w-3.5 h-3.5 text-slate-400" />
                 <span>Settings</span>
               </button>
+              {onReplayIntro && (
+                <button
+                  onClick={() => {
+                    onReplayIntro();
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/40 text-left text-[12px] text-sky-600 dark:text-sky-400 font-medium border-t border-slate-100 dark:border-slate-800 mt-1 pt-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Replay Intro Experience</span>
+                </button>
+              )}
             </div>
           )}
         </div>
