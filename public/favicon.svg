@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="ciircBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1329"/>
+      <stop offset="60%" stop-color="#050a17"/>
+      <stop offset="100%" stop-color="#02050f"/>
+    </linearGradient>
+
+    <!-- Squircle Border Stroke -->
+    <linearGradient id="squircleBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#0284c7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.5"/>
+    </linearGradient>
+
+    <!-- White / Silver Arc Gradient -->
+    <linearGradient id="cArcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="60%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+
+    <!-- Electric Cyan Sensor Core Gradient -->
+    <linearGradient id="cyanCoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Radial Cybernetic Ambient Glow -->
+    <radialGradient id="coreAmbientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.45"/>
+      <stop offset="65%" stop-color="#0369a1" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#ciircBg)" stroke="url(#squircleBorder)" stroke-width="1.5"/>
+
+  <!-- Ambient Blue/Cyan Core Glow -->
+  <circle cx="32" cy="32" r="22" fill="url(#coreAmbientGlow)"/>
+
+  <!-- CIIRC Bold "C" Monogram Arc -->
+  <path d="M 41 21 A 14.2 14.2 0 1 0 41 43" fill="none" stroke="url(#cArcGrad)" stroke-width="6.8" stroke-linecap="round"/>
+
+  <!-- Cybernetic Optical Reticle Ring -->
+  <circle cx="32.8" cy="32" r="6.2" fill="none" stroke="#38bdf8" stroke-width="1.1" stroke-opacity="0.5"/>
+
+  <!-- Glowing Cybernetic Sensor Core -->
+  <circle cx="32.8" cy="32" r="4.0" fill="url(#cyanCoreGrad)"/>
+
+  <!-- Specular Center Highlight -->
+  <circle cx="31.6" cy="30.8" r="1.2" fill="#ffffff" opacity="0.95"/>
+</svg>
