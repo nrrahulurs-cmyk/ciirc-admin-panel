@@ -58,6 +58,17 @@ function AppShellContent() {
     }
   }, []);
 
+  const [workspaceReady, setWorkspaceReady] = useState(false);
+
+  useEffect(() => {
+    if (!showIntro) {
+      const t = setTimeout(() => setWorkspaceReady(true), 40);
+      return () => clearTimeout(t);
+    } else {
+      setWorkspaceReady(false);
+    }
+  }, [showIntro]);
+
   const toggleTheme = () => {
     setIsDark((prev) => {
       const next = !prev;
@@ -81,27 +92,58 @@ function AppShellContent() {
   return (
     <div className="min-h-screen w-screen ciirc-atmospheric-bg text-slate-900 dark:text-slate-100 flex items-center justify-center p-2.5 sm:p-3.5 lg:p-4 overflow-x-hidden">
       {/* Floating Workspace Shell matching exact specification */}
-      <div className="w-full max-w-[1580px] h-[calc(100vh-28px)] rounded-[22px] bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl border border-[rgba(50,90,160,0.09)] dark:border-slate-800/80 shadow-[0_10px_35px_rgba(30,60,120,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex overflow-hidden">
-        {/* Left Sidebar */}
-        <Sidebar
-          currentModule={currentModule}
-          onSelectModule={(mod) => setCurrentModule(mod)}
-        />
+      <div
+        className="w-full max-w-[1580px] h-[calc(100vh-28px)] rounded-[22px] bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl border border-[rgba(50,90,160,0.09)] dark:border-slate-800/80 shadow-[0_10px_35px_rgba(30,60,120,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex overflow-hidden transition-all duration-700 ease-out"
+        style={{
+          opacity: showIntro && !workspaceReady ? 0.9 : 1,
+          transform: showIntro && !workspaceReady ? "scale(0.985)" : "scale(1)",
+        }}
+      >
+        {/* Left Sidebar (Group 1: Navigation Structure ~80ms) */}
+        <div
+          className="h-full flex transition-all duration-600 ease-out"
+          style={{
+            opacity: !showIntro && workspaceReady ? 1 : 0.4,
+            transform: !showIntro && workspaceReady ? "translateX(0)" : "translateX(-6px)",
+            transitionDelay: "60ms",
+          }}
+        >
+          <Sidebar
+            currentModule={currentModule}
+            onSelectModule={(mod) => setCurrentModule(mod)}
+          />
+        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-slate-50/30 dark:bg-slate-900/20">
-          {/* Top Bar */}
-          <TopBar
-            currentModule={currentModule}
-            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-            isDark={isDark}
-            onToggleTheme={toggleTheme}
-            onSelectModule={(mod) => setCurrentModule(mod)}
-            onReplayIntro={() => setShowIntro(true)}
-          />
+          {/* Top Bar (Group 2: Shell Header ~140ms) */}
+          <div
+            className="w-full transition-all duration-600 ease-out"
+            style={{
+              opacity: !showIntro && workspaceReady ? 1 : 0.4,
+              transform: !showIntro && workspaceReady ? "translateY(0)" : "translateY(-4px)",
+              transitionDelay: "140ms",
+            }}
+          >
+            <TopBar
+              currentModule={currentModule}
+              onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
+              onSelectModule={(mod) => setCurrentModule(mod)}
+              onReplayIntro={() => setShowIntro(true)}
+            />
+          </div>
 
-          {/* Main Workspace Body */}
-          <main className="flex-1 overflow-y-auto px-5 sm:px-7 py-5">
+          {/* Main Workspace Body (Group 3: Key & Secondary Content ~220ms) */}
+          <main
+            className="flex-1 overflow-y-auto px-5 sm:px-7 py-5 transition-all duration-650 ease-out"
+            style={{
+              opacity: !showIntro && workspaceReady ? 1 : 0.3,
+              transform: !showIntro && workspaceReady ? "translateY(0)" : "translateY(6px)",
+              transitionDelay: "220ms",
+            }}
+          >
             {currentModule === "dashboard" && (
               <DashboardView
                 onSelectModule={(mod) => setCurrentModule(mod)}
