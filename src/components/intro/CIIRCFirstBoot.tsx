@@ -9,12 +9,11 @@ interface CIIRCFirstBootProps {
 }
 
 type BootPhase =
-  | "empty"        // 0.0s - 0.5s: Pristine empty canvas with soft atmospheric cyan/indigo diffusion
-  | "forming"      // 0.5s - 1.6s: Sequential fluid materialization of c-i-i-r-c from liquid glass
-  | "settling"     // 1.6s - 2.2s: Coalescing into unified, crisp blue/cyan-tinted liquid glass typography
-  | "specular"     // 2.2s - 2.9s: Single restrained specular refraction sweep across the glass letters
-  | "welcome"      // 2.6s - 3.8s: "Welcome to CIIRC" emerges gracefully beneath the wordmark
-  | "dissolving"   // 3.8s - 4.6s: Automatic continuous dissolve into the workspace environment
+  | "empty"        // 0.0s - 0.32s: Pristine empty canvas with soft atmospheric cyan/indigo diffusion
+  | "forming"      // 0.32s - 1.2s: Sequential fluid materialization of c-i-i-r-c from liquid glass
+  | "settling"     // 1.15s - 1.6s: Coalescing into unified, crisp blue/cyan-tinted liquid glass typography
+  | "specular"     // 1.35s - 2.1s: Restrained specular refraction sweep across the glass letters
+  | "dissolving"   // 2.1s - 2.6s: Automatic continuous dissolve into the workspace environment
   | "complete";
 
 export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
@@ -32,24 +31,22 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Cinematic Master Timeline (~4.6s total sequence)
+  // Quick Premium Cinematic Master Timeline (~2.6s total sequence)
   useEffect(() => {
     if (prefersReducedMotion) {
       setActiveLetters([0, 1, 2, 3, 4]);
       setPhase("settling");
-      const t1 = setTimeout(() => setPhase("welcome"), 300);
-      const t2 = setTimeout(() => {
+      const t = setTimeout(() => {
         setPhase("dissolving");
-        setTimeout(onComplete, 400);
-      }, 1400);
+        setTimeout(onComplete, 350);
+      }, 700);
       return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
+        clearTimeout(t);
       };
     }
 
-    // Phase 1 -> 2: Sequential materialization of c - i - i - r - c
-    const delays = [500, 720, 940, 1160, 1380];
+    // Phase 1 -> 2: Sequential materialization of c - i - i - r - c (0.3s - 1.2s)
+    const delays = [320, 500, 680, 860, 1040];
     const letterTimers = delays.map((delay, idx) =>
       setTimeout(() => {
         setPhase((prev) => (prev === "empty" ? "forming" : prev));
@@ -57,34 +54,30 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       }, delay)
     );
 
-    // Phase 3: Coalesce into unified crisp blue/cyan liquid glass wordmark (1.6s)
-    const tSettling = setTimeout(() => setPhase("settling"), 1650);
+    // Phase 3: Coalesce into unified crisp blue/cyan liquid glass wordmark (1.15s)
+    const tSettling = setTimeout(() => setPhase("settling"), 1150);
 
-    // Phase 4: Specular reflection sweep glides across the 5 letters (2.2s)
-    const tSpecular = setTimeout(() => setPhase("specular"), 2200);
+    // Phase 4: Specular reflection sweep glides across the letters (1.35s - 2.1s)
+    const tSpecular = setTimeout(() => setPhase("specular"), 1350);
 
-    // Phase 5: "Welcome to CIIRC" emerges with subtle upward drift (2.6s)
-    const tWelcome = setTimeout(() => setPhase("welcome"), 2600);
-
-    // Phase 6: Automatic seamless dissolve engages at 3.8s (no button needed)
+    // Phase 5: Smooth dissolve into dashboard engages at 2.1s
     const tDissolve = setTimeout(() => {
       setPhase("dissolving");
       try {
         sessionStorage.setItem("ciirc_intro_seen_session", "true");
       } catch {}
 
-      // Unmount overlay after dissolve transition completes (4.6s)
+      // Unmount overlay after dissolve transition completes (2.6s total)
       setTimeout(() => {
         setPhase("complete");
         onComplete();
-      }, 750);
-    }, 3800);
+      }, 500);
+    }, 2100);
 
     return () => {
       letterTimers.forEach(clearTimeout);
       clearTimeout(tSettling);
       clearTimeout(tSpecular);
-      clearTimeout(tWelcome);
       clearTimeout(tDissolve);
     };
   }, [prefersReducedMotion, onComplete]);
@@ -115,16 +108,15 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
 
   // Phase status helpers
   const isForming = phase !== "empty";
-  const isSettling = ["settling", "specular", "welcome", "dissolving", "complete"].includes(phase);
-  const isSpecular = ["specular", "welcome", "dissolving", "complete"].includes(phase);
-  const isWelcome = ["welcome", "dissolving", "complete"].includes(phase);
+  const isSettling = ["settling", "specular", "dissolving", "complete"].includes(phase);
+  const isSpecular = ["specular", "dissolving", "complete"].includes(phase);
   const isDissolving = phase === "dissolving";
 
   return (
     <div
       ref={containerRef}
       onClick={handleSkipClick}
-      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden select-none cursor-pointer transition-opacity duration-750 ease-out ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden select-none cursor-pointer transition-opacity duration-500 ease-out ${
         isDissolving ? "opacity-0" : "opacity-100"
       }`}
       style={{
@@ -137,7 +129,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {/* Soft Cyan Atmospheric Caustic Pool */}
         <div
-          className={`absolute w-[860px] h-[480px] rounded-full transition-all duration-1100 ease-out ${
+          className={`absolute w-[860px] h-[480px] rounded-full transition-all duration-1000 ease-out ${
             isForming ? "opacity-100 scale-100" : "opacity-0 scale-75"
           }`}
           style={{
@@ -151,7 +143,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
 
         {/* Deep Royal Indigo Aura */}
         <div
-          className={`absolute w-[1100px] h-[600px] rounded-full transition-all duration-1300 ease-out ${
+          className={`absolute w-[1100px] h-[600px] rounded-full transition-all duration-1000 ease-out ${
             isForming ? "opacity-100 scale-100" : "opacity-0 scale-85"
           }`}
           style={{
@@ -168,7 +160,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       <div className="relative flex flex-col items-center justify-center z-10">
         {/* Soft Physical Tinted Caustic Floor Shadow */}
         <div
-          className={`absolute -bottom-8 w-[420px] sm:w-[580px] h-[60px] rounded-full pointer-events-none transition-all duration-1000 ${
+          className={`absolute -bottom-8 w-[420px] sm:w-[580px] h-[60px] rounded-full pointer-events-none transition-all duration-700 ${
             isSettling ? "opacity-100" : isForming ? "opacity-50" : "opacity-0"
           }`}
           style={{
@@ -183,7 +175,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
         <div
           className="relative w-[340px] sm:w-[480px] md:w-[580px] lg:w-[680px] aspect-[1160/530] flex items-center justify-center select-none"
           style={{
-            transitionDuration: isDissolving ? "750ms" : isSettling ? "900ms" : "1100ms",
+            transitionDuration: isDissolving ? "500ms" : isSettling ? "700ms" : "900ms",
             transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
             transform: isDissolving
               ? "scale(1.03) translateY(-4px)"
@@ -194,7 +186,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
         >
           {/* Backing Caustic Depth Aura: Saturates the blue/cyan glass */}
           <div
-            className={`absolute -inset-10 rounded-full pointer-events-none transition-opacity duration-1000 ${
+            className={`absolute -inset-10 rounded-full pointer-events-none transition-opacity duration-700 ${
               isSettling ? "opacity-100" : "opacity-0"
             }`}
             style={{
@@ -292,7 +284,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
                   <g
                     key={letter.id}
                     style={{
-                      transition: "all 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      transition: "all 500ms cubic-bezier(0.22, 1, 0.36, 1)",
                       opacity: isActive ? 1 : 0,
                       transform: isActive ? "scale(1) translateY(0)" : "scale(0.93) translateY(8px)",
                       transformOrigin: "center center",
@@ -325,11 +317,11 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
                 );
               })}
 
-            {/* Stage B: Unified Liquid Glass Wordmark (Active once letters settle at 1.6s) */}
+            {/* Stage B: Unified Liquid Glass Wordmark (Active once letters settle at 1.15s) */}
             <g
               filter="url(#ciircVolumetricGlow)"
               style={{
-                transition: "opacity 600ms ease-out",
+                transition: "opacity 450ms ease-out",
                 opacity: isSettling ? 1 : 0,
               }}
             >
@@ -350,7 +342,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
                 style={{ mixBlendMode: "overlay" }}
               />
 
-              {/* Layer 4: Single Restrained Specular Light Sweep (Phase: 2.2s - 2.9s) */}
+              {/* Layer 4: Single Restrained Specular Light Sweep (Phase: 1.35s - 2.1s) */}
               {/* Glides across the physical glass surface, illuminating curvature and depth */}
               <g mask="url(#ciircWordmarkMask)">
                 <rect
@@ -364,7 +356,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
                       ? "translateX(1750px) rotate(22deg)"
                       : "translateX(0px) rotate(22deg)",
                     transformOrigin: "center center",
-                    transition: "transform 1.25s cubic-bezier(0.22, 1, 0.36, 1)",
+                    transition: "transform 750ms cubic-bezier(0.22, 1, 0.36, 1)",
                     mixBlendMode: isDark ? "screen" : "overlay",
                   }}
                 />
@@ -382,25 +374,6 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
             </g>
           </svg>
         </div>
-
-        {/* 4. The "Welcome to CIIRC" Moment (Refined System Typography) */}
-        <p
-          className="mt-10 sm:mt-12 text-[14px] sm:text-[15.5px] font-medium tracking-[0.32em] uppercase select-none transition-all duration-700"
-          style={{
-            transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-            color: isDark ? "#cbd5e1" : "#1e293b",
-            opacity: isDissolving ? 0 : isWelcome ? 0.92 : 0,
-            transform: isDissolving
-              ? "translateY(-4px)"
-              : isWelcome
-              ? "translateY(0)"
-              : "translateY(10px)",
-            filter: isWelcome ? "blur(0px)" : "blur(6px)",
-            letterSpacing: "0.32em",
-          }}
-        >
-          Welcome to CIIRC
-        </p>
       </div>
     </div>
   );

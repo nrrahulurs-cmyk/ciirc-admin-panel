@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Search,
   Bell,
@@ -35,6 +35,29 @@ export function TopBar({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close dropdowns when module changes (e.g. sidebar navigation)
+  useEffect(() => {
+    setShowNotifications(false);
+    setShowProfileMenu(false);
+  }, [currentModule]);
+
   return (
     <header className="h-[54px] px-7 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/70 select-none bg-transparent">
       {/* Left: Command Search Field matching exact 315px width & 36px height */}
@@ -59,9 +82,12 @@ export function TopBar({
         </span>
 
         {/* Notifications with badge matching reference */}
-        <div className="relative">
+        <div className="relative" ref={notifRef}>
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              setShowProfileMenu(false);
+            }}
             className="relative p-1.5 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
             title="4 notifications require attention"
           >
@@ -126,16 +152,19 @@ export function TopBar({
         </button>
 
         {/* Profile Avatar button */}
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            onClick={() => {
+              setShowProfileMenu(!showProfileMenu);
+              setShowNotifications(false);
+            }}
             className="w-7 h-7 rounded-full bg-slate-200/90 dark:bg-slate-700 flex items-center justify-center text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:ring-2 hover:ring-blue-500/30 transition-all"
           >
             A
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 rounded-2xl glass-dropdown p-2 z-50 text-slate-900 dark:text-slate-100 text-xs">
+            <div className="absolute right-0 mt-2 w-48 rounded-2xl glass-dropdown p-2 z-50 text-slate-900 dark:text-slate-100 text-xs animate-in fade-in-50 zoom-in-95">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                 <div className="font-semibold text-xs">Admin</div>
                 <div className="text-[10px] text-slate-400">admin@ciirc.edu.in</div>
@@ -179,3 +208,4 @@ export function TopBar({
     </header>
   );
 }
+

@@ -32,7 +32,9 @@ const config: Config = {
           500: "#64748b",
           600: "#475569",
           700: "#334155",
+          750: "#283548",
           800: "#1e293b",
+          850: "#172033",
           900: "#0f172a",
           950: "#090d16",
         },
@@ -57,7 +59,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 
 export default config;

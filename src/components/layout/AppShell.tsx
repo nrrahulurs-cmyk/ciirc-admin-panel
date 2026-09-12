@@ -39,7 +39,8 @@ function AppShellContent() {
     try {
       const params = new URLSearchParams(window.location.search);
       const skipIntro = params.get("skipIntro") === "true";
-      if (skipIntro) {
+      const seenSession = sessionStorage.getItem("ciirc_intro_seen_session") === "true";
+      if (skipIntro || seenSession) {
         setShowIntro(false);
       }
     } catch (err) {
@@ -118,7 +119,7 @@ function AppShellContent() {
         <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-slate-50/30 dark:bg-slate-900/20">
           {/* Top Bar (Group 2: Shell Header ~140ms) */}
           <div
-            className="w-full transition-all duration-600 ease-out"
+            className="w-full relative z-30 transition-all duration-600 ease-out"
             style={{
               opacity: !showIntro && workspaceReady ? 1 : 0.4,
               transform: !showIntro && workspaceReady ? "translateY(0)" : "translateY(-4px)",
