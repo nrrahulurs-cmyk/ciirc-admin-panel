@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { CIIRC_VIEWBOX, CIIRC_LETTERS, CIIRC_FULL_PATH } from "./ciircVectors";
 
 interface CIIRCFirstBootProps {
   onComplete: () => void;
@@ -8,17 +9,17 @@ interface CIIRCFirstBootProps {
 }
 
 type BootPhase =
-  | "empty"        // 0.0s - 0.7s: Pristine empty canvas, faint ambient cyan/indigo diffusion wakes up
-  | "formation"    // 0.7s - 1.6s: Liquid glass silhouette forms from soft blur and atmospheric light
-  | "refining"     // 1.3s - 2.3s: Progressive resolution into blue/cyan-tinted translucent liquid glass
-  | "specular"     // 2.1s - 2.8s: Single restrained specular refraction pass travels across the glass
-  | "resolved"     // 2.7s - 3.3s: Settles into crisp optical liquid glass with dimensional depth
-  | "welcome"      // 3.0s - 4.2s: "Welcome to CIIRC" emerges gracefully beneath the wordmark
-  | "dissolving"   // 4.2s - 5.0s: Seamless continuous dissolve into the workspace environment
+  | "empty"        // 0.0s - 0.5s: Pristine empty canvas with soft atmospheric cyan/indigo diffusion
+  | "forming"      // 0.5s - 1.6s: Sequential fluid materialization of c-i-i-r-c from liquid glass
+  | "settling"     // 1.6s - 2.2s: Coalescing into unified, crisp blue/cyan-tinted liquid glass typography
+  | "specular"     // 2.2s - 2.9s: Single restrained specular refraction sweep across the glass letters
+  | "welcome"      // 2.6s - 3.8s: "Welcome to CIIRC" emerges gracefully beneath the wordmark
+  | "dissolving"   // 3.8s - 4.6s: Automatic continuous dissolve into the workspace environment
   | "complete";
 
 export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
   const [phase, setPhase] = useState<BootPhase>("empty");
+  const [activeLetters, setActiveLetters] = useState<number[]>([]);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,68 +32,70 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Automatic cinematic timeline (total sequence ~4.9 seconds)
+  // Cinematic Master Timeline (~4.6s total sequence)
   useEffect(() => {
     if (prefersReducedMotion) {
-      const t1 = setTimeout(() => setPhase("resolved"), 150);
-      const t2 = setTimeout(() => setPhase("welcome"), 400);
-      const t3 = setTimeout(() => {
+      setActiveLetters([0, 1, 2, 3, 4]);
+      setPhase("settling");
+      const t1 = setTimeout(() => setPhase("welcome"), 300);
+      const t2 = setTimeout(() => {
         setPhase("dissolving");
         setTimeout(onComplete, 400);
       }, 1400);
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
-        clearTimeout(t3);
       };
     }
 
-    // Phase 1 -> 2: Formation of the blue/cyan liquid glass silhouette (0.7s)
-    const t1 = setTimeout(() => setPhase("formation"), 700);
+    // Phase 1 -> 2: Sequential materialization of c - i - i - r - c
+    const delays = [500, 720, 940, 1160, 1380];
+    const letterTimers = delays.map((delay, idx) =>
+      setTimeout(() => {
+        setPhase((prev) => (prev === "empty" ? "forming" : prev));
+        setActiveLetters((prev) => [...prev, idx]);
+      }, delay)
+    );
 
-    // Phase 2 -> 3: Progressive liquid resolution & glass tint emergence (1.3s)
-    const t2 = setTimeout(() => setPhase("refining"), 1300);
+    // Phase 3: Coalesce into unified crisp blue/cyan liquid glass wordmark (1.6s)
+    const tSettling = setTimeout(() => setPhase("settling"), 1650);
 
-    // Phase 3 -> 4: Specular reflection sweep glides across the letterforms (2.1s)
-    const t3 = setTimeout(() => setPhase("specular"), 2100);
+    // Phase 4: Specular reflection sweep glides across the 5 letters (2.2s)
+    const tSpecular = setTimeout(() => setPhase("specular"), 2200);
 
-    // Phase 4 -> 5: Settles into crystal-clear blue-tinted liquid glass (2.7s)
-    const t4 = setTimeout(() => setPhase("resolved"), 2700);
+    // Phase 5: "Welcome to CIIRC" emerges with subtle upward drift (2.6s)
+    const tWelcome = setTimeout(() => setPhase("welcome"), 2600);
 
-    // Phase 5 -> 6: "Welcome to CIIRC" emerges with subtle upward drift (3.0s)
-    const t5 = setTimeout(() => setPhase("welcome"), 3000);
-
-    // Phase 6 -> 7: Automatic seamless dissolve engages at 4.2s (no button needed)
-    const t6 = setTimeout(() => {
+    // Phase 6: Automatic seamless dissolve engages at 3.8s (no button needed)
+    const tDissolve = setTimeout(() => {
       setPhase("dissolving");
       try {
-        localStorage.setItem("ciirc_intro_seen", "true");
+        sessionStorage.setItem("ciirc_intro_seen_session", "true");
       } catch {}
 
-      // Unmount overlay after dissolve transition completes (5.0s)
+      // Unmount overlay after dissolve transition completes (4.6s)
       setTimeout(() => {
         setPhase("complete");
         onComplete();
       }, 750);
-    }, 4200);
+    }, 3800);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-      clearTimeout(t5);
-      clearTimeout(t6);
+      letterTimers.forEach(clearTimeout);
+      clearTimeout(tSettling);
+      clearTimeout(tSpecular);
+      clearTimeout(tWelcome);
+      clearTimeout(tDissolve);
     };
   }, [prefersReducedMotion, onComplete]);
 
-  // Keyboard shortcut for power users (Enter / Space / Esc instantly enters workspace)
+  // Keyboard shortcut & Click to skip for power users / testing (Space / Enter / Esc / Click)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
         e.preventDefault();
         try {
-          localStorage.setItem("ciirc_intro_seen", "true");
+          sessionStorage.setItem("ciirc_intro_seen_session", "true");
         } catch {}
         setPhase("complete");
         onComplete();
@@ -102,252 +105,298 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onComplete]);
 
+  const handleSkipClick = () => {
+    try {
+      sessionStorage.setItem("ciirc_intro_seen_session", "true");
+    } catch {}
+    setPhase("complete");
+    onComplete();
+  };
+
   // Phase status helpers
   const isForming = phase !== "empty";
-  const isRefining = ["refining", "specular", "resolved", "welcome", "dissolving", "complete"].includes(phase);
-  const isSpecular = ["specular", "resolved", "welcome", "dissolving", "complete"].includes(phase);
-  const isResolved = ["resolved", "welcome", "dissolving", "complete"].includes(phase);
+  const isSettling = ["settling", "specular", "welcome", "dissolving", "complete"].includes(phase);
+  const isSpecular = ["specular", "welcome", "dissolving", "complete"].includes(phase);
   const isWelcome = ["welcome", "dissolving", "complete"].includes(phase);
   const isDissolving = phase === "dissolving";
 
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden select-none pointer-events-none transition-opacity duration-750 ease-out ${
+      onClick={handleSkipClick}
+      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden select-none cursor-pointer transition-opacity duration-750 ease-out ${
         isDissolving ? "opacity-0" : "opacity-100"
       }`}
       style={{
         background: isDark
-          ? "radial-gradient(ellipse 130% 100% at 50% 38%, #0b1120 0%, #060913 52%, #020408 100%)"
-          : "radial-gradient(ellipse 130% 100% at 50% 36%, #ffffff 0%, #f7f9fd 46%, #e8eff8 100%)",
+          ? "radial-gradient(ellipse 135% 100% at 50% 40%, #080e1a 0%, #04070e 55%, #020307 100%)"
+          : "radial-gradient(ellipse 135% 100% at 50% 38%, #ffffff 0%, #f6f9fd 48%, #e7f0fa 100%)",
       }}
     >
-      {/* Embedded SVG Shader Definitions for Real-Time Liquid Glass Optics */}
-      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
-        <defs>
-          {/* Liquid Glass 3D Specular Chamfer Light Filter */}
-          <filter id="ciircLiquidGlassOptics" x="-20%" y="-20%" width="140%" height="140%">
-            {/* 1. Extract Alpha and compute smooth bevel slope */}
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2.4" result="blurAlpha" />
-
-            {/* 2. Key Specular Highlight from Top-Left (Crisp white/cyan reflection rim) */}
-            <feSpecularLighting
-              in="blurAlpha"
-              surfaceScale="5.2"
-              specularConstant="1.35"
-              specularExponent="26"
-              lightingColor="#ffffff"
-              result="specularWhite"
-            >
-              <fePointLight x="-140" y="-180" z="260" />
-            </feSpecularLighting>
-            <feComposite in="specularWhite" in2="SourceAlpha" operator="in" result="cutSpecularWhite" />
-
-            {/* 3. Secondary Cyan/Sky-Blue Internal Refraction Rim from Bottom-Right */}
-            <feSpecularLighting
-              in="blurAlpha"
-              surfaceScale="4.0"
-              specularConstant="1.1"
-              specularExponent="16"
-              lightingColor="#38bdf8"
-              result="specularCyan"
-            >
-              <fePointLight x="180" y="220" z="220" />
-            </feSpecularLighting>
-            <feComposite in="specularCyan" in2="SourceAlpha" operator="in" result="cutSpecularCyan" />
-
-            {/* 4. Merge Specular Chamfers with the Translucent Glass Body */}
-            <feMerge>
-              <feMergeNode in="SourceGraphic" />
-              <feMergeNode in="cutSpecularCyan" />
-              <feMergeNode in="cutSpecularWhite" />
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
-
-      {/* 1. Atmospheric Volumetric Caustic Lighting (Subtle Breathing Field) */}
+      {/* 1. Atmospheric Volumetric Caustic Lighting (Generous Negative Space) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {/* Soft Cyan Atmospheric Pool */}
+        {/* Soft Cyan Atmospheric Caustic Pool */}
         <div
-          className={`absolute w-[760px] h-[400px] rounded-full transition-all duration-1100 ease-out ${
+          className={`absolute w-[860px] h-[480px] rounded-full transition-all duration-1100 ease-out ${
             isForming ? "opacity-100 scale-100" : "opacity-0 scale-75"
           }`}
           style={{
             background: isDark
-              ? "radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.06) 50%, transparent 75%)"
-              : "radial-gradient(circle, rgba(56, 189, 248, 0.26) 0%, rgba(186, 230, 253, 0.12) 50%, transparent 75%)",
-            filter: "blur(80px)",
-            transform: isDissolving ? "scale(1.45)" : "scale(1)",
+              ? "radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(2, 132, 199, 0.10) 50%, transparent 75%)"
+              : "radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(186, 230, 253, 0.18) 50%, transparent 75%)",
+            filter: "blur(90px)",
+            transform: isDissolving ? "scale(1.4)" : "scale(1)",
           }}
         />
 
-        {/* Faint Indigo Deep-Field Undertone */}
+        {/* Deep Royal Indigo Aura */}
         <div
-          className={`absolute w-[1000px] h-[540px] rounded-full transition-all duration-1300 ease-out ${
+          className={`absolute w-[1100px] h-[600px] rounded-full transition-all duration-1300 ease-out ${
             isForming ? "opacity-100 scale-100" : "opacity-0 scale-85"
           }`}
           style={{
             background: isDark
-              ? "radial-gradient(circle, rgba(30, 27, 105, 0.18) 0%, rgba(14, 165, 233, 0.03) 60%, transparent 80%)"
-              : "radial-gradient(circle, rgba(30, 58, 138, 0.08) 0%, rgba(224, 242, 254, 0.05) 60%, transparent 80%)",
-            filter: "blur(110px)",
+              ? "radial-gradient(circle, rgba(30, 27, 105, 0.25) 0%, rgba(14, 165, 233, 0.05) 60%, transparent 80%)"
+              : "radial-gradient(circle, rgba(30, 58, 138, 0.14) 0%, rgba(224, 242, 254, 0.08) 60%, transparent 80%)",
+            filter: "blur(120px)",
             transform: isDissolving ? "scale(1.35)" : "scale(1)",
           }}
         />
       </div>
 
-      {/* 2. Hero Composition (Enormous Negative Space) */}
+      {/* 2. Hero Composition (Centered Liquid Glass Wordmark) */}
       <div className="relative flex flex-col items-center justify-center z-10">
         {/* Soft Physical Tinted Caustic Floor Shadow */}
         <div
-          className={`absolute -bottom-4 w-[420px] sm:w-[500px] h-[56px] rounded-full pointer-events-none transition-all duration-1000 ${
-            isResolved ? "opacity-100" : isRefining ? "opacity-45" : "opacity-0"
+          className={`absolute -bottom-8 w-[420px] sm:w-[580px] h-[60px] rounded-full pointer-events-none transition-all duration-1000 ${
+            isSettling ? "opacity-100" : isForming ? "opacity-50" : "opacity-0"
           }`}
           style={{
             background: isDark
-              ? "radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(2, 132, 199, 0.12) 40%, transparent 75%)"
-              : "radial-gradient(ellipse at center, rgba(14, 165, 233, 0.24) 0%, rgba(30, 58, 138, 0.12) 45%, transparent 75%)",
-            filter: "blur(22px)",
+              ? "radial-gradient(ellipse at center, rgba(0, 0, 0, 0.8) 0%, rgba(2, 132, 199, 0.22) 42%, transparent 75%)"
+              : "radial-gradient(ellipse at center, rgba(14, 165, 233, 0.38) 0%, rgba(30, 58, 138, 0.20) 45%, transparent 75%)",
+            filter: "blur(26px)",
           }}
         />
 
-        {/* 3. The CIIRC Blue-Tinted Liquid Glass Wordmark */}
+        {/* 3. The CIIRC Visibly Blue/Cyan-Tinted Liquid Glass Wordmark */}
         <div
-          className="relative flex items-center justify-center select-none"
+          className="relative w-[340px] sm:w-[480px] md:w-[580px] lg:w-[680px] aspect-[1160/530] flex items-center justify-center select-none"
           style={{
-            transitionDuration: isDissolving ? "750ms" : isResolved ? "1000ms" : "1200ms",
+            transitionDuration: isDissolving ? "750ms" : isSettling ? "900ms" : "1100ms",
             transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
             transform: isDissolving
-              ? "scale(1.04) translateY(-5px)"
-              : isResolved
+              ? "scale(1.03) translateY(-4px)"
+              : isSettling
               ? "scale(1) translateY(0)"
-              : isRefining
-              ? "scale(0.985) translateY(2px)"
-              : "scale(0.95) translateY(8px)",
-            opacity: isDissolving ? 0 : isResolved ? 1 : isRefining ? 0.85 : isForming ? 0.35 : 0,
-            filter: isDissolving
-              ? "blur(12px)"
-              : isResolved
-              ? "blur(0px)"
-              : isRefining
-              ? "blur(4px)"
-              : isForming
-              ? "blur(24px)"
-              : "blur(36px)",
+              : "scale(0.96) translateY(6px)",
           }}
         >
-          {/* Backing Caustic Aura: Illuminates the glass from behind */}
+          {/* Backing Caustic Depth Aura: Saturates the blue/cyan glass */}
           <div
             className={`absolute -inset-10 rounded-full pointer-events-none transition-opacity duration-1000 ${
-              isRefining ? "opacity-100" : "opacity-0"
+              isSettling ? "opacity-100" : "opacity-0"
             }`}
             style={{
               background:
-                "radial-gradient(ellipse at center, rgba(56, 189, 248, 0.32) 0%, rgba(37, 99, 235, 0.15) 50%, transparent 70%)",
-              filter: "blur(30px)",
+                "radial-gradient(ellipse at center, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0.25) 48%, transparent 72%)",
+              filter: "blur(36px)",
             }}
           />
 
-          {/* Layer 1: The Authentic CIIRC Wordmark in 70% Translucent Optical Glass */}
-          <img
-            src="/ciirc-logo-hires.png"
-            alt="CIIRC"
-            className="w-[340px] sm:w-[450px] lg:w-[490px] h-auto object-contain select-none transition-all duration-700"
-            style={{
-              opacity: isDark ? 0.82 : 0.74,
-              filter: `url(#ciircLiquidGlassOptics) ${
-                isDark
-                  ? "drop-shadow(0 2px 4px rgba(255, 255, 255, 0.7)) drop-shadow(0 18px 40px rgba(0, 0, 0, 0.75))"
-                  : "drop-shadow(0 2px 4px rgba(255, 255, 255, 0.98)) drop-shadow(0 16px 36px rgba(2, 132, 199, 0.22))"
-              }`,
-            }}
-          />
-
-          {/* Layer 2: Volumetric Blue/Cyan Liquid Glass Internal Luminance & Depth */}
-          {/* Strictly masked to letterforms to ensure letters are visibly BLUE/CYAN TINTED GLASS */}
-          <div
-            className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
-              isRefining ? "opacity-100" : "opacity-0"
-            }`}
-            style={{
-              WebkitMaskImage: "url(/ciirc-logo-hires.png)",
-              maskImage: "url(/ciirc-logo-hires.png)",
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              background:
-                "linear-gradient(135deg, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0.65) 38%, rgba(30, 27, 105, 0.82) 72%, rgba(14, 165, 233, 0.55) 100%)",
-              mixBlendMode: isDark ? "screen" : "color-burn",
-            }}
-          />
-
-          {/* Layer 3: Secondary Internal Caustic Glow */}
-          <div
-            className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
-              isResolved ? "opacity-80" : "opacity-0"
-            }`}
-            style={{
-              WebkitMaskImage: "url(/ciirc-logo-hires.png)",
-              maskImage: "url(/ciirc-logo-hires.png)",
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              background:
-                "radial-gradient(circle at 45% 40%, rgba(255, 255, 255, 0.4) 0%, rgba(56, 189, 248, 0.3) 35%, transparent 70%)",
-              mixBlendMode: "overlay",
-            }}
-          />
-
-          {/* Layer 4: Single Restrained Traveling Specular Glint (Active at Phase 4: 2.1s - 2.8s) */}
-          <div
-            className="absolute inset-0 pointer-events-none overflow-hidden"
-            style={{
-              WebkitMaskImage: "url(/ciirc-logo-hires.png)",
-              maskImage: "url(/ciirc-logo-hires.png)",
-              WebkitMaskSize: "contain",
-              maskSize: "contain",
-              WebkitMaskRepeat: "no-repeat",
-              maskRepeat: "no-repeat",
-              WebkitMaskPosition: "center",
-              maskPosition: "center",
-              mixBlendMode: "overlay",
-            }}
+          {/* Master SVG Vector Graphics for True Optical Liquid Glass */}
+          <svg
+            viewBox={CIIRC_VIEWBOX}
+            className="w-full h-full overflow-visible"
+            preserveAspectRatio="xMidYMid meet"
           >
-            <div
-              className="absolute top-[-60%] left-[-120%] w-[60%] h-[220%]"
+            <defs>
+              {/* Volumetric Liquid Glass Base Body Gradient (Vivid CIIRC Royal Blue + Cyan + Deep Indigo) */}
+              <linearGradient id="ciircLiquidGlassBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#38bdf8" stopOpacity={isDark ? "0.85" : "0.82"} />
+                <stop offset="25%" stopColor="#0284c7" stopOpacity={isDark ? "0.82" : "0.80"} />
+                <stop offset="55%" stopColor="#1d4ed8" stopOpacity={isDark ? "0.88" : "0.85"} />
+                <stop offset="82%" stopColor="#1e2578" stopOpacity={isDark ? "0.92" : "0.90"} />
+                <stop offset="100%" stopColor="#0ea5e9" stopOpacity={isDark ? "0.84" : "0.80"} />
+              </linearGradient>
+
+              {/* Internal Refractive Cyan Core Gradient */}
+              <radialGradient id="ciircInternalCaustic" cx="42%" cy="32%" r="68%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity={isDark ? "0.45" : "0.50"} />
+                <stop offset="30%" stopColor="#38bdf8" stopOpacity={isDark ? "0.35" : "0.40"} />
+                <stop offset="65%" stopColor="#1e40af" stopOpacity={isDark ? "0.22" : "0.25"} />
+                <stop offset="100%" stopColor="#1e1b4b" stopOpacity="0" />
+              </radialGradient>
+
+              {/* Pristine 3D Glass Edge Bevel Highlight */}
+              <linearGradient id="ciircRimStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                <stop offset="30%" stopColor="#7dd3fc" stopOpacity="0.85" />
+                <stop offset="70%" stopColor="#2563eb" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.90" />
+              </linearGradient>
+
+              {/* SVG 3D Surface Normal Specular Lighting Filter (Silky Smooth Optical Glass) */}
+              <filter id="ciircSpecular3D" x="-25%" y="-25%" width="150%" height="150%" colorInterpolationFilters="sRGB">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="4.2" result="heightmap" />
+                {/* 3D Specular Light Reflection */}
+                <feSpecularLighting
+                  in="heightmap"
+                  surfaceScale="2.8"
+                  specularConstant="1.4"
+                  specularExponent="26"
+                  lightingColor="#ffffff"
+                  result="specularLight"
+                >
+                  <feDistantLight azimuth="225" elevation="58" />
+                </feSpecularLighting>
+                {/* Subtle Rim Light from opposite angle */}
+                <feSpecularLighting
+                  in="heightmap"
+                  surfaceScale="2.0"
+                  specularConstant="0.8"
+                  specularExponent="16"
+                  lightingColor="#38bdf8"
+                  result="rimLight"
+                >
+                  <feDistantLight azimuth="45" elevation="45" />
+                </feSpecularLighting>
+                {/* Composite strictly onto letter alpha */}
+                <feComposite in="specularLight" in2="SourceAlpha" operator="in" result="specularTrim" />
+                <feComposite in="rimLight" in2="SourceAlpha" operator="in" result="rimTrim" />
+                <feMerge>
+                  <feMergeNode in="SourceGraphic" />
+                  <feMergeNode in="rimTrim" />
+                  <feMergeNode in="specularTrim" />
+                </feMerge>
+              </filter>
+
+              {/* Volumetric Caustic Glow Filter */}
+              <filter id="ciircVolumetricGlow" x="-25%" y="-25%" width="150%" height="150%">
+                <feDropShadow dx="0" dy="16" stdDeviation="24" floodColor="#0284c7" floodOpacity={isDark ? "0.5" : "0.32"} />
+                <feDropShadow dx="0" dy="3" stdDeviation="6" floodColor="#38bdf8" floodOpacity={isDark ? "0.4" : "0.26"} />
+              </filter>
+
+              {/* Wordmark Mask for Specular Glint Sweep */}
+              <mask id="ciircWordmarkMask">
+                <path d={CIIRC_FULL_PATH} fill="#ffffff" />
+              </mask>
+            </defs>
+
+            {/* Stage A: Sequential Letter Formation (c - i - i - r - c) */}
+            {/* During initial emergence, individual letters fade/scale in sequentially */}
+            {!isSettling &&
+              CIIRC_LETTERS.map((letter, idx) => {
+                const isActive = activeLetters.includes(idx);
+                return (
+                  <g
+                    key={letter.id}
+                    style={{
+                      transition: "all 650ms cubic-bezier(0.22, 1, 0.36, 1)",
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive ? "scale(1) translateY(0)" : "scale(0.93) translateY(8px)",
+                      transformOrigin: "center center",
+                      filter: isActive ? "blur(0px)" : "blur(24px)",
+                    }}
+                  >
+                    {/* Outer Caustic Shadow */}
+                    <path
+                      d={letter.path}
+                      fill="none"
+                      stroke="#0284c7"
+                      strokeWidth="6"
+                      opacity={isDark ? "0.4" : "0.28"}
+                      style={{ filter: "blur(10px)" }}
+                    />
+                    {/* Glass Body */}
+                    <path
+                      d={letter.path}
+                      fill="url(#ciircLiquidGlassBody)"
+                      stroke="url(#ciircRimStroke)"
+                      strokeWidth="2.4"
+                    />
+                    {/* Internal Luminance */}
+                    <path
+                      d={letter.path}
+                      fill="url(#ciircInternalCaustic)"
+                      style={{ mixBlendMode: "overlay" }}
+                    />
+                  </g>
+                );
+              })}
+
+            {/* Stage B: Unified Liquid Glass Wordmark (Active once letters settle at 1.6s) */}
+            <g
+              filter="url(#ciircVolumetricGlow)"
               style={{
-                background:
-                  "linear-gradient(115deg, transparent 15%, rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0.95) 48%, rgba(56, 189, 248, 0.85) 54%, rgba(255, 255, 255, 0.22) 70%, transparent 85%)",
-                transform: isSpecular
-                  ? "translateX(880px) rotate(18deg)"
-                  : "translateX(0px) rotate(18deg)",
-                transition: "transform 1.35s cubic-bezier(0.22, 1, 0.36, 1)",
+                transition: "opacity 600ms ease-out",
+                opacity: isSettling ? 1 : 0,
               }}
-            />
-          </div>
+            >
+              {/* Layer 1 & 2: Volumetric Liquid Glass Letters with 3D Specular Lighting */}
+              <g filter="url(#ciircSpecular3D)">
+                <path
+                  d={CIIRC_FULL_PATH}
+                  fill="url(#ciircLiquidGlassBody)"
+                  stroke="url(#ciircRimStroke)"
+                  strokeWidth="2.5"
+                />
+              </g>
+
+              {/* Layer 3: Internal Luminosity / Optical Caustic */}
+              <path
+                d={CIIRC_FULL_PATH}
+                fill="url(#ciircInternalCaustic)"
+                style={{ mixBlendMode: "overlay" }}
+              />
+
+              {/* Layer 4: Single Restrained Specular Light Sweep (Phase: 2.2s - 2.9s) */}
+              {/* Glides across the physical glass surface, illuminating curvature and depth */}
+              <g mask="url(#ciircWordmarkMask)">
+                <rect
+                  x="-350"
+                  y="-100"
+                  width="380"
+                  height="750"
+                  fill="url(#ciircSpecularSweepGrad)"
+                  style={{
+                    transform: isSpecular
+                      ? "translateX(1750px) rotate(22deg)"
+                      : "translateX(0px) rotate(22deg)",
+                    transformOrigin: "center center",
+                    transition: "transform 1.25s cubic-bezier(0.22, 1, 0.36, 1)",
+                    mixBlendMode: isDark ? "screen" : "overlay",
+                  }}
+                />
+                <defs>
+                  <linearGradient id="ciircSpecularSweepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                    <stop offset="25%" stopColor="#ffffff" stopOpacity="0.15" />
+                    <stop offset="48%" stopColor="#ffffff" stopOpacity="0.95" />
+                    <stop offset="54%" stopColor="#38bdf8" stopOpacity="0.90" />
+                    <stop offset="72%" stopColor="#ffffff" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+              </g>
+            </g>
+          </svg>
         </div>
 
-        {/* 4. The "Welcome to CIIRC" Moment */}
+        {/* 4. The "Welcome to CIIRC" Moment (Refined System Typography) */}
         <p
-          className="mt-9 text-[14px] sm:text-[15.5px] font-medium tracking-[0.28em] uppercase select-none transition-all duration-650"
+          className="mt-10 sm:mt-12 text-[14px] sm:text-[15.5px] font-medium tracking-[0.32em] uppercase select-none transition-all duration-700"
           style={{
             transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-            color: isDark ? "#f1f5f9" : "#1e293b",
+            color: isDark ? "#cbd5e1" : "#1e293b",
             opacity: isDissolving ? 0 : isWelcome ? 0.92 : 0,
             transform: isDissolving
               ? "translateY(-4px)"
               : isWelcome
               ? "translateY(0)"
-              : "translateY(8px)",
-            filter: isWelcome ? "blur(0px)" : "blur(5px)",
-            letterSpacing: "0.28em",
+              : "translateY(10px)",
+            filter: isWelcome ? "blur(0px)" : "blur(6px)",
+            letterSpacing: "0.32em",
           }}
         >
           Welcome to CIIRC

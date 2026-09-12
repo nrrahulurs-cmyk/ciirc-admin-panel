@@ -32,15 +32,15 @@ function AppShellContent() {
 
   // Default to Light Mode as primary per reference
   const [isDark, setIsDark] = useState(false);
-  const [showIntro, setShowIntro] = useState(false);
+  // Default to true on initial page load so there is ZERO dashboard flash
+  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const forceIntro = params.get("intro") === "true";
-      const hasSeenIntro = localStorage.getItem("ciirc_intro_seen");
-      if (forceIntro || !hasSeenIntro) {
-        setShowIntro(true);
+      const skipIntro = params.get("skipIntro") === "true";
+      if (skipIntro) {
+        setShowIntro(false);
       }
     } catch (err) {
       console.warn("Intro check error:", err);
