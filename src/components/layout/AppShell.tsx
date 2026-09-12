@@ -149,6 +149,7 @@ function AppShellContent() {
               <DashboardView
                 onSelectModule={(mod) => setCurrentModule(mod)}
                 onOpenQuickCreate={handleOpenQuickCreate}
+                isReady={!showIntro && workspaceReady}
               />
             )}
 

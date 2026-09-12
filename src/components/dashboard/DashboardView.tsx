@@ -27,11 +27,18 @@ import { useToast } from "../common/Toast";
 interface DashboardViewProps {
   onSelectModule: (module: ModuleId) => void;
   onOpenQuickCreate: (type?: string) => void;
+  isReady?: boolean;
 }
 
-export function DashboardView({ onSelectModule, onOpenQuickCreate }: DashboardViewProps) {
+export function DashboardView({
+  onSelectModule,
+  onOpenQuickCreate,
+  isReady = true,
+}: DashboardViewProps) {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
+  const [chartAnimKey, setChartAnimKey] = useState(0);
   const [selectedRange, setSelectedRange] = useState("Last 6 Months");
   const [showRangeDropdown, setShowRangeDropdown] = useState(false);
 
@@ -39,15 +46,61 @@ export function DashboardView({ onSelectModule, onOpenQuickCreate }: DashboardVi
     setMounted(true);
   }, []);
 
+  // Trigger chart animation cleanly after intro finishes and workspace fades in
+  useEffect(() => {
+    if (isReady) {
+      const timer = setTimeout(() => {
+        setChartReady(true);
+        setChartAnimKey((k) => k + 1);
+      }, 150);
+      return () => clearTimeout(timer);
+    } else {
+      setChartReady(false);
+    }
+  }, [isReady]);
+
   // Smooth two-series trend data matching reference visual
-  const waveData = [
-    { month: "Apr", waveA: 18, waveB: 28 },
-    { month: "May", waveA: 36, waveB: 22 },
-    { month: "Jun", waveA: 32, waveB: 46 },
-    { month: "Jul", waveA: 26, waveB: 34 },
-    { month: "Aug", waveA: 52, waveB: 30 },
-    { month: "Sep", waveA: 42, waveB: 56 },
-  ];
+  const waveDataMap: Record<string, Array<{ month: string; waveA: number; waveB: number }>> = {
+    "Last 7 Days": [
+      { month: "Mon", waveA: 20, waveB: 15 },
+      { month: "Tue", waveA: 28, waveB: 24 },
+      { month: "Wed", waveA: 35, waveB: 32 },
+      { month: "Thu", waveA: 42, waveB: 28 },
+      { month: "Fri", waveA: 48, waveB: 45 },
+      { month: "Sat", waveA: 38, waveB: 50 },
+      { month: "Sun", waveA: 52, waveB: 56 },
+    ],
+    "Last 30 Days": [
+      { month: "W1", waveA: 24, waveB: 30 },
+      { month: "W2", waveA: 38, waveB: 26 },
+      { month: "W3", waveA: 45, waveB: 42 },
+      { month: "W4", waveA: 55, waveB: 48 },
+    ],
+    "Last 3 Months": [
+      { month: "Jul", waveA: 26, waveB: 34 },
+      { month: "Aug", waveA: 52, waveB: 30 },
+      { month: "Sep", waveA: 42, waveB: 56 },
+    ],
+    "Last 6 Months": [
+      { month: "Apr", waveA: 18, waveB: 28 },
+      { month: "May", waveA: 36, waveB: 22 },
+      { month: "Jun", waveA: 32, waveB: 46 },
+      { month: "Jul", waveA: 26, waveB: 34 },
+      { month: "Aug", waveA: 52, waveB: 30 },
+      { month: "Sep", waveA: 42, waveB: 56 },
+    ],
+    "Last 12 Months": [
+      { month: "Oct", waveA: 14, waveB: 20 },
+      { month: "Dec", waveA: 22, waveB: 18 },
+      { month: "Feb", waveA: 30, waveB: 35 },
+      { month: "Apr", waveA: 28, waveB: 26 },
+      { month: "Jun", waveA: 42, waveB: 40 },
+      { month: "Aug", waveA: 52, waveB: 30 },
+      { month: "Sep", waveA: 48, waveB: 58 },
+    ],
+  };
+
+  const waveData = waveDataMap[selectedRange] || waveDataMap["Last 6 Months"];
 
   const kpis = [
     { id: "researchers", number: "84", label: "Researchers", trend: "12%", icon: Users, module: "researchers" as ModuleId },
@@ -145,9 +198,13 @@ export function DashboardView({ onSelectModule, onOpenQuickCreate }: DashboardVi
 
           {/* Smooth Wavy Two-Series Spline Chart matching reference (No Y-axis numbers) */}
           <div className="h-48 sm:h-56 w-full mt-2">
-            {mounted ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={waveData} margin={{ top: 12, right: 8, left: 8, bottom: 0 }}>
+            {mounted && chartReady ? (
+              <ResponsiveContainer width="100%" height="100%" key={`resp-${chartAnimKey}`}>
+                <AreaChart
+                  key={`chart-${chartAnimKey}-${selectedRange}`}
+                  data={waveData}
+                  margin={{ top: 12, right: 8, left: 8, bottom: 0 }}
+                >
                   <defs>
                     <linearGradient id="waveBlue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#0066cc" stopOpacity={0.18} />
@@ -193,6 +250,10 @@ export function DashboardView({ onSelectModule, onOpenQuickCreate }: DashboardVi
                     strokeWidth={2.25}
                     fillOpacity={1}
                     fill="url(#waveBlue)"
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                    animationEasing="ease-out"
+                    animationBegin={60}
                   />
                   <Area
                     type="natural"
@@ -201,12 +262,18 @@ export function DashboardView({ onSelectModule, onOpenQuickCreate }: DashboardVi
                     strokeWidth={2.25}
                     fillOpacity={1}
                     fill="url(#waveIndigo)"
+                    isAnimationActive={true}
+                    animationDuration={1500}
+                    animationEasing="ease-out"
+                    animationBegin={220}
                   />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                Loading analytics curve...
+              <div className="w-full h-full flex items-center justify-center opacity-40">
+                <div className="w-full h-full flex items-end px-3 pb-4">
+                  <div className="w-full h-24 rounded-lg bg-gradient-to-t from-blue-100/30 to-transparent dark:from-sky-950/20" />
+                </div>
               </div>
             )}
           </div>
