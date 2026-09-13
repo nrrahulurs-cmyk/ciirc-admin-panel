@@ -16,6 +16,7 @@ import {
   Award,
 } from "lucide-react";
 import { useToast } from "../common/Toast";
+import { getCanonicalMetrics } from "@/lib/canonicalMetrics";
 
 interface PublicPreviewModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function PublicPreviewModal({
 }: PublicPreviewModalProps) {
   const { toast } = useToast();
   const [deviceView, setDeviceView] = useState<"desktop" | "mobile">("desktop");
+  const canonical = getCanonicalMetrics();
 
   if (!isOpen) return null;
 
@@ -163,15 +165,15 @@ export function PublicPreviewModal({
                   <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
                     <div>
                       <span className="text-[10px] text-slate-400 font-semibold uppercase">Publications</span>
-                      <div className="text-[18px] font-bold text-slate-900">42</div>
+                      <div className="text-[18px] font-bold text-slate-900">{entityData?.publicationsCount || canonical.publicationsCount}</div>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 font-semibold uppercase">Citations</span>
-                      <div className="text-[18px] font-bold text-[#0066cc]">890+</div>
+                      <div className="text-[18px] font-bold text-[#0066cc]">{entityData?.citations ? `${entityData.citations}+` : "890+"}</div>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 font-semibold uppercase">h-Index</span>
-                      <div className="text-[18px] font-bold text-slate-900">18</div>
+                      <div className="text-[18px] font-bold text-slate-900">{entityData?.hIndex || "18"}</div>
                     </div>
                   </div>
                 </div>
@@ -184,21 +186,21 @@ export function PublicPreviewModal({
                       Research Vista
                     </span>
                     <h1 className="text-[26px] font-extrabold text-slate-900 mt-2">
-                      Autonomous Systems & Cybernetics
+                      {entityData?.name || "Autonomous Systems & Cybernetics"}
                     </h1>
                     <p className="text-[13.5px] text-slate-600 leading-relaxed mt-2">
-                      Decentralized swarms, subterranean GPS-denied navigation, adaptive field rovers and aerial micro-drones designed for degraded environmental exploration.
+                      {entityData?.shortDesc || "Decentralized swarms, subterranean GPS-denied navigation, adaptive field rovers and aerial micro-drones designed for degraded environmental exploration."}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50">
                       <span className="text-[11px] font-bold text-slate-500">Sponsored Grants</span>
-                      <div className="text-[18px] font-bold text-[#0066cc]">₹5.85 Crore</div>
+                      <div className="text-[18px] font-bold text-[#0066cc]">{canonical.totalGrantsFormatted}</div>
                     </div>
                     <div className="p-3.5 rounded-xl border border-slate-100 bg-slate-50">
                       <span className="text-[11px] font-bold text-slate-500">Faculty Researchers</span>
-                      <div className="text-[18px] font-bold text-slate-900">14 Members</div>
+                      <div className="text-[18px] font-bold text-slate-900">{canonical.researchersCount} Members</div>
                     </div>
                   </div>
                 </div>

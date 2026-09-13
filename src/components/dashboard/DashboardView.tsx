@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { ModuleId } from "@/types";
 import { useToast } from "../common/Toast";
+import { getCanonicalMetrics } from "@/lib/canonicalMetrics";
 
 interface DashboardViewProps {
   onSelectModule: (module: ModuleId) => void;
@@ -102,12 +103,14 @@ export function DashboardView({
 
   const waveData = waveDataMap[selectedRange] || waveDataMap["Last 6 Months"];
 
+  const canonical = getCanonicalMetrics();
+
   const kpis = [
-    { id: "researchers", number: "84", label: "Researchers", trend: "12%", icon: Users, module: "researchers" as ModuleId },
-    { id: "projects", number: "37", label: "Active Projects", trend: "8%", icon: FolderGit2, module: "projects" as ModuleId },
-    { id: "publications", number: "214", label: "Publications", trend: "15%", icon: BookOpen, module: "publications" as ModuleId },
-    { id: "patents", number: "28", label: "Patents", trend: "4%", icon: Award, module: "patents" as ModuleId },
-    { id: "events", number: "6", label: "Upcoming Events", trend: "20%", icon: Calendar, module: "events" as ModuleId },
+    { id: "researchers", number: String(canonical.researchersCount), label: "Researchers", trend: "12%", icon: Users, module: "researchers" as ModuleId },
+    { id: "projects", number: String(canonical.activeProjectsCount), label: "Active Projects", trend: "8%", icon: FolderGit2, module: "projects" as ModuleId },
+    { id: "publications", number: String(canonical.publicationsCount), label: "Publications", trend: "15%", icon: BookOpen, module: "publications" as ModuleId },
+    { id: "patents", number: String(canonical.patentsCount), label: "Patents", trend: "4%", icon: Award, module: "patents" as ModuleId },
+    { id: "events", number: String(canonical.upcomingEventsCount), label: "Upcoming Events", trend: "20%", icon: Calendar, module: "events" as ModuleId },
   ];
 
   return (

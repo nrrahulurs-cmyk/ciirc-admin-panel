@@ -55,6 +55,23 @@ export type ModuleId =
   | "login";
 
 // ==========================================
+// 0. DATA CLASSIFICATION & SOURCE PROVENANCE
+// ==========================================
+
+export type DataClassification = "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "RESTRICTED";
+
+export type TemporalStatus = "Current" | "Historical" | "Archived" | "Scheduled" | "Draft";
+
+export interface SourceProvenance {
+  sourceUrl?: string;
+  sourceType?: string;
+  sourceDocument?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  verificationStatus: "Verified" | "Needs Verification" | "Historical" | "Unverified";
+}
+
+// ==========================================
 // 1. RESEARCH & PEOPLE ENTITIES
 // ==========================================
 
@@ -82,9 +99,12 @@ export interface Researcher {
   biography: string;
   completenessScore?: number; // 0 - 100%
   awards: { year: string; title: string; issuer: string }[];
-  collaborations: { institution: string; country: string; project: string }[];
+  collaborations: { institution: string; country: string; project: string; partnerId?: string }[];
   recentActivities: { date: string; action: string; title: string }[];
   publicVisibility?: boolean;
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 export interface ResearchDomain {
@@ -150,11 +170,16 @@ export interface Project {
   facilityId?: string;
   description: string;
   publicVisibility?: boolean;
+  partnerId?: string;
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 export interface FundingGrant {
   id: string;
   agencyName: string;
+  partnerId?: string;
   program: string;
   grantNumber: string;
   projectId: string;
@@ -169,6 +194,9 @@ export interface FundingGrant {
   endDate: string;
   status: "Active" | "Audited" | "Closed" | "Extension Requested";
   nextReportDue: string;
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 // ==========================================
@@ -304,11 +332,15 @@ export interface PartnerOrg {
   contactPerson: string;
   logo: string;
   activeProjects: number;
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 export interface InstitutionalMOU {
   id: string;
   mouNumber: string;
+  partnerId?: string;
   partnerName: string;
   partnerType: string;
   scope: string;
@@ -320,11 +352,15 @@ export interface InstitutionalMOU {
   alertLevel: "Normal" | "90 Days" | "60 Days" | "30 Days" | "Expired";
   status: "Active" | "Under Renewal" | "Completed" | "Pending Signing";
   documentUrl: string;
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 export interface ConsultancyEngagement {
   id: string;
   projectCode: string;
+  partnerId?: string;
   title: string;
   clientOrganization: string;
   piName: string;
@@ -333,6 +369,9 @@ export interface ConsultancyEngagement {
   startDate: string;
   targetEndDate: string;
   status: "On Schedule" | "Milestone Review" | "Invoice Pending";
+  classification?: DataClassification;
+  temporalStatus?: TemporalStatus;
+  provenance?: SourceProvenance;
 }
 
 export interface StartupEntity {

@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { PublicPreviewModal } from "./PublicPreviewModal";
 import { useToast } from "../common/Toast";
+import { getCanonicalMetrics, getCanonicalPartners } from "@/lib/canonicalMetrics";
 
 export function ContentCMSView() {
   const { toast } = useToast();
@@ -97,13 +98,30 @@ Key highlights:
   const [workflowStatus, setWorkflowStatus] = useState<"Draft" | "Review" | "Approved" | "Scheduled" | "Published">("Review");
 
   // API Explorer states
-  const [selectedApiEndpoint, setSelectedApiEndpoint] = useState<"/api/v1/public/researchers" | "/api/v1/public/domains" | "/api/v1/public/projects">("/api/v1/public/researchers");
+  const [selectedApiEndpoint, setSelectedApiEndpoint] = useState<
+    "/api/v1/public/metrics" | "/api/v1/public/partners" | "/api/v1/public/researchers" | "/api/v1/public/domains" | "/api/v1/public/projects"
+  >("/api/v1/public/metrics");
+
+  const canonical = getCanonicalMetrics();
+  const canonicalPartners = getCanonicalPartners();
 
   const apiResponses: Record<string, any> = {
+    "/api/v1/public/metrics": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      institution: "Centre for Intelligent and Interactive Robotics and Cybernetics (CIIRC)",
+      data: canonical,
+    },
+    "/api/v1/public/partners": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: canonicalPartners.length,
+      data: canonicalPartners,
+    },
     "/api/v1/public/researchers": {
       status: 200,
-      timestamp: "2026-09-13T08:50:00Z",
-      pagination: { total: 84, page: 1, pageSize: 10 },
+      timestamp: new Date().toISOString(),
+      pagination: { total: canonical.researchersCount, limit: 10 },
       data: [
         {
           id: "res-01",
@@ -115,6 +133,7 @@ Key highlights:
           citations: 1420,
           publicProfileUrl: "https://ciirc.edu.in/faculty/rajesh-mehta",
           publicVisibility: true,
+          classification: "PUBLIC",
           // Internal budgets & private notes are strictly excluded
         },
         {
@@ -127,6 +146,7 @@ Key highlights:
           citations: 890,
           publicProfileUrl: "https://ciirc.edu.in/faculty/arvind-sharma",
           publicVisibility: true,
+          classification: "PUBLIC",
         },
       ],
     },
@@ -506,6 +526,8 @@ Key highlights:
                 onChange={(e) => setSelectedApiEndpoint(e.target.value as any)}
                 className="h-[32px] px-3 text-xs font-mono rounded-lg bg-slate-800 text-slate-200 border border-slate-700 focus:outline-none"
               >
+                <option value="/api/v1/public/metrics">/api/v1/public/metrics</option>
+                <option value="/api/v1/public/partners">/api/v1/public/partners</option>
                 <option value="/api/v1/public/researchers">/api/v1/public/researchers</option>
                 <option value="/api/v1/public/domains">/api/v1/public/domains</option>
                 <option value="/api/v1/public/projects">/api/v1/public/projects</option>
