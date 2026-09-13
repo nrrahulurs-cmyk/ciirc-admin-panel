@@ -22,11 +22,15 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
   const [phase, setPhase] = useState<BootPhase>("empty");
   const [activeLetters, setActiveLetters] = useState<number[]>([]);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [isMuted, setIsMuted] = useState(() => introAudio.getMuted());
+  const [mounted, setMounted] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Check user preference for reduced motion
+  // Check user preference for reduced motion & audio settings after mount
   useEffect(() => {
+    setMounted(true);
+    setIsMuted(introAudio.getMuted());
+
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mediaQuery.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
@@ -150,6 +154,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       <div className="absolute top-6 right-6 z-50 flex items-center gap-2.5 pointer-events-auto">
         <button
           type="button"
+          suppressHydrationWarning
           onClick={(e) => {
             e.stopPropagation();
             const muted = introAudio.toggleMuted();
@@ -163,9 +168,9 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
               ? "bg-slate-900/60 border-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-800/80"
               : "bg-white/70 border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-white/90"
           }`}
-          title={isMuted ? "Unmute Intro Audio" : "Mute Intro Audio"}
+          title={mounted && isMuted ? "Unmute Intro Audio" : "Mute Intro Audio"}
         >
-          {isMuted ? (
+          {mounted && isMuted ? (
             <>
               <VolumeX className="w-3.5 h-3.5 text-slate-400" />
               <span>Sound Off</span>

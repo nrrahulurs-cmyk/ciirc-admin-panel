@@ -18,12 +18,7 @@ class CIIRCIntroAudioEngine {
   private isPlaying: boolean = false;
 
   constructor() {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("ciirc_intro_sound_enabled");
-        this.isMuted = saved === "false";
-      } catch {}
-    }
+    this.isMuted = false;
   }
 
   private getContext(): AudioContext | null {
@@ -42,6 +37,14 @@ class CIIRCIntroAudioEngine {
   }
 
   public getMuted(): boolean {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("ciirc_intro_sound_enabled");
+        if (saved !== null) {
+          this.isMuted = saved === "false";
+        }
+      } catch {}
+    }
     return this.isMuted;
   }
 
