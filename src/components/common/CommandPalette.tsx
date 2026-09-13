@@ -14,9 +14,21 @@ import {
   ArrowRight,
   X,
   Layers,
+  Building,
+  Handshake,
+  ShieldCheck,
+  Compass,
 } from "lucide-react";
 import { ModuleId } from "@/types";
-import { researchersList, projectsList, publicationsList, eventsList } from "@/data/mockData";
+import {
+  researchersList,
+  projectsList,
+  publicationsList,
+  eventsList,
+  researchDomainsList,
+  facilitiesList,
+  institutionalMOUsList,
+} from "@/data/mockData";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -171,6 +183,46 @@ export function CommandPalette({
           icon: BookOpen,
           action: () => {
             onSelectModule("publications");
+            onClose();
+          },
+        },
+        {
+          id: "nav-facilities",
+          title: "Facilities & Equipment Operations",
+          subtitle: "4 specialized labs, ISO cleanroom, and 5 operational instruments",
+          icon: Building,
+          action: () => {
+            onSelectModule("facilities");
+            onClose();
+          },
+        },
+        {
+          id: "nav-partnerships",
+          title: "Strategic Alliances & MOUs",
+          subtitle: "Institutional agreements, consultancy pipeline, and deep-tech startups",
+          icon: Handshake,
+          action: () => {
+            onSelectModule("partnerships");
+            onClose();
+          },
+        },
+        {
+          id: "nav-operations",
+          title: "Operations Center & Data Quality",
+          subtitle: "Forward deadline calendar and continuous metadata hygiene audit",
+          icon: ShieldCheck,
+          action: () => {
+            onSelectModule("operations");
+            onClose();
+          },
+        },
+        {
+          id: "nav-explorer",
+          title: "Institutional Relationship Explorer",
+          subtitle: "Interactive knowledge graph connecting faculty, grants, and labs",
+          icon: Compass,
+          action: () => {
+            onSelectModule("researchers");
             onClose();
           },
         },

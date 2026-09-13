@@ -1,18 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ModuleId } from "@/types";
+import { ModuleId, UserAccount } from "@/types";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { CommandPalette } from "../common/CommandPalette";
 import { QuickCreateModal } from "../common/QuickCreateModal";
 import { ToastProvider, useToast } from "../common/Toast";
+import { userAccountsList } from "@/data/mockData";
 
-// Domain Views
+// Domain & Operational Views
 import { DashboardView } from "../dashboard/DashboardView";
+import { ResearchManagementView } from "../research/ResearchManagementView";
 import { ResearchersView } from "../research/ResearchersView";
-import { ProjectsView } from "../research/ProjectsView";
-import { PublicationsView } from "../research/PublicationsView";
+import { FacilitiesView } from "../facilities/FacilitiesView";
+import { PartnershipsView } from "../partnerships/PartnershipsView";
+import { OperationsCenterView } from "../operations/OperationsCenterView";
 import { ContentCMSView } from "../content/ContentCMSView";
 import { WorkflowApprovalsView } from "../workflow/WorkflowApprovalsView";
 import { MediaLibraryView } from "../media/MediaLibraryView";
@@ -22,6 +25,7 @@ import { AnalyticsView } from "../analytics/AnalyticsView";
 import { UsersRbacView } from "../admin/UsersRbacView";
 import { AuditLogsView } from "../admin/AuditLogsView";
 import { SystemSettingsView } from "../admin/SystemSettingsView";
+import { AuthLoginView } from "../auth/AuthLoginView";
 import { CIIRCIntro } from "../intro/CIIRCIntro";
 
 function AppShellContent() {
@@ -30,9 +34,12 @@ function AppShellContent() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [quickCreateType, setQuickCreateType] = useState<string | null>(null);
 
-  // Default to Light Mode as primary per reference
+  // Authentication & Session State
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [currentUser, setCurrentUser] = useState<UserAccount>(userAccountsList[0]);
+
+  // Theme & Intro States
   const [isDark, setIsDark] = useState(false);
-  // Default to true on initial page load so there is ZERO dashboard flash
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
@@ -90,6 +97,28 @@ function AppShellContent() {
     setQuickCreateType(type);
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    toast("Console Session Locked", "Signed out of CIIRC Digital Operating System.", "info");
+  };
+
+  const handleLoginSuccess = (user: UserAccount) => {
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    setCurrentModule("dashboard");
+    setShowIntro(false);
+  };
+
+  // If session is locked/unauthenticated, render the high-security institutional Login Gateway
+  if (!isAuthenticated || currentModule === "login") {
+    return (
+      <AuthLoginView
+        onLoginSuccess={handleLoginSuccess}
+        isDark={isDark}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen w-screen ciirc-atmospheric-bg text-slate-900 dark:text-slate-100 flex items-center justify-center p-2.5 sm:p-3.5 lg:p-4 overflow-x-hidden">
       {/* Floating Workspace Shell matching exact specification */}
@@ -112,6 +141,8 @@ function AppShellContent() {
           <Sidebar
             currentModule={currentModule}
             onSelectModule={(mod) => setCurrentModule(mod)}
+            currentUser={currentUser}
+            onLogout={handleLogout}
           />
         </div>
 
@@ -133,6 +164,8 @@ function AppShellContent() {
               onToggleTheme={toggleTheme}
               onSelectModule={(mod) => setCurrentModule(mod)}
               onReplayIntro={() => setShowIntro(true)}
+              currentUser={currentUser}
+              onLogout={handleLogout}
             />
           </div>
 
@@ -145,6 +178,7 @@ function AppShellContent() {
               transitionDelay: "220ms",
             }}
           >
+            {/* Dashboard */}
             {currentModule === "dashboard" && (
               <DashboardView
                 onSelectModule={(mod) => setCurrentModule(mod)}
@@ -153,48 +187,96 @@ function AppShellContent() {
               />
             )}
 
-            {currentModule === "researchers" && (
-              <ResearchersView onOpenQuickCreate={handleOpenQuickCreate} />
+            {/* Research & Innovation Pillar */}
+            {(currentModule === "researchers" || currentModule === "research-areas") && (
+              <ResearchManagementView
+                initialTab="researchers"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
+            )}
+
+            {currentModule === "domains" && (
+              <ResearchManagementView
+                initialTab="domains"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
             )}
 
             {currentModule === "projects" && (
-              <ProjectsView onOpenQuickCreate={handleOpenQuickCreate} />
+              <ResearchManagementView
+                initialTab="projects"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
             )}
 
             {currentModule === "publications" && (
-              <PublicationsView onOpenQuickCreate={handleOpenQuickCreate} />
+              <ResearchManagementView
+                initialTab="publications"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
             )}
 
-            {currentModule === "patents" && (
-              <PublicationsView onOpenQuickCreate={handleOpenQuickCreate} />
+            {(currentModule === "patents" || currentModule === "technologies") && (
+              <ResearchManagementView
+                initialTab="patents"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
             )}
 
-            {currentModule === "faculty" && (
+            {currentModule === "relationship-explorer" && (
+              <ResearchManagementView
+                initialTab="researchers"
+                onOpenQuickCreate={handleOpenQuickCreate}
+              />
+            )}
+
+            {/* Facilities & Infrastructure Pillar */}
+            {(currentModule === "facilities" || currentModule === "equipment" || currentModule === "labs" || currentModule === "services") && (
+              <FacilitiesView />
+            )}
+
+            {/* Partnerships & Incubation Pillar */}
+            {(currentModule === "partnerships" || currentModule === "mous" || currentModule === "consultancy" || currentModule === "startups" || currentModule === "iedc") && (
+              <PartnershipsView />
+            )}
+
+            {/* Operations Center & Data Quality */}
+            {(currentModule === "operations" || currentModule === "data-quality") && (
+              <OperationsCenterView onSelectModule={(mod) => setCurrentModule(mod)} />
+            )}
+
+            {/* People (Faculty & Scholars) */}
+            {(currentModule === "faculty" || currentModule === "scholars" || currentModule === "departments") && (
               <ResearchersView onOpenQuickCreate={handleOpenQuickCreate} />
             )}
 
-            {(currentModule === "pages" || currentModule === "news" || currentModule === "banners" || currentModule === "faqs") && (
+            {/* Content & Website CMS */}
+            {(currentModule === "pages" || currentModule === "news" || currentModule === "banners" || currentModule === "faqs" || currentModule === "website-readiness" || currentModule === "api-explorer") && (
               <ContentCMSView />
             )}
 
+            {/* Institutional Events */}
             {(currentModule === "events" || currentModule === "speakers" || currentModule === "venues") && (
               <EventsView onOpenQuickCreate={handleOpenQuickCreate} />
             )}
 
-            {(currentModule === "form-builder" || currentModule === "form-submissions" || currentModule === "enquiries") && (
+            {/* Forms, Enquiries & Service Desk */}
+            {(currentModule === "form-builder" || currentModule === "form-submissions" || currentModule === "enquiries" || currentModule === "service-desk") && (
               <FormsView />
             )}
 
+            {/* Media Library */}
             {currentModule === "media-library" && <MediaLibraryView />}
 
+            {/* Governance & Workflow Pipeline */}
             {currentModule === "workflow-approvals" && <WorkflowApprovalsView />}
 
+            {/* Analytics */}
             {currentModule === "analytics" && <AnalyticsView />}
 
+            {/* System, Security & RBAC */}
             {currentModule === "users-rbac" && <UsersRbacView />}
-
             {currentModule === "audit-logs" && <AuditLogsView />}
-
             {currentModule === "system-settings" && <SystemSettingsView />}
           </main>
         </div>

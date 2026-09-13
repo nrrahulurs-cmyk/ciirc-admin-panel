@@ -10,9 +10,10 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
-import { ModuleId } from "@/types";
+import { ModuleId, UserAccount } from "@/types";
 import { requiresAttentionItems } from "@/data/mockData";
 import { useToast } from "../common/Toast";
+import { LogOut } from "lucide-react";
 
 interface TopBarProps {
   currentModule: ModuleId;
@@ -21,6 +22,8 @@ interface TopBarProps {
   onToggleTheme: () => void;
   onSelectModule: (module: ModuleId) => void;
   onReplayIntro?: () => void;
+  currentUser?: UserAccount;
+  onLogout?: () => void;
 }
 
 export function TopBar({
@@ -30,6 +33,8 @@ export function TopBar({
   onToggleTheme,
   onSelectModule,
   onReplayIntro,
+  currentUser,
+  onLogout,
 }: TopBarProps) {
   const { toast } = useToast();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -158,16 +163,23 @@ export function TopBar({
               setShowProfileMenu(!showProfileMenu);
               setShowNotifications(false);
             }}
-            className="w-7 h-7 rounded-full bg-slate-200/90 dark:bg-slate-700 flex items-center justify-center text-[11px] font-semibold text-slate-700 dark:text-slate-200 hover:ring-2 hover:ring-blue-500/30 transition-all"
+            className="w-7 h-7 rounded-full bg-[#0066cc] text-white flex items-center justify-center text-[11px] font-bold hover:ring-2 hover:ring-blue-500/30 transition-all shadow-2xs"
           >
-            A
+            {currentUser?.name ? currentUser.name[0] : "A"}
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-48 rounded-2xl glass-dropdown p-2 z-50 text-slate-900 dark:text-slate-100 text-xs animate-in fade-in-50 zoom-in-95">
+            <div className="absolute right-0 mt-2 w-52 rounded-2xl glass-dropdown p-2 z-50 text-slate-900 dark:text-slate-100 text-xs animate-in fade-in-50 zoom-in-95">
               <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                <div className="font-semibold text-xs">Admin</div>
-                <div className="text-[10px] text-slate-400">admin@ciirc.edu.in</div>
+                <div className="font-semibold text-xs text-slate-900 dark:text-white">
+                  {currentUser?.name || "Admin (Rahul Urs)"}
+                </div>
+                <div className="text-[10px] text-slate-400 truncate">
+                  {currentUser?.email || "admin@ciirc.edu.in"}
+                </div>
+                <span className="inline-block mt-1 text-[9.5px] font-semibold px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-950 text-[#0066cc] dark:text-sky-300">
+                  {currentUser?.role || "Super Admin"}
+                </span>
               </div>
               <button
                 onClick={() => {
@@ -199,6 +211,18 @@ export function TopBar({
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Replay Intro Experience</span>
+                </button>
+              )}
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onLogout();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 text-left text-[12px] text-rose-600 dark:text-rose-400 font-medium border-t border-slate-100 dark:border-slate-800 mt-1 pt-2"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Lock Console / Sign Out</span>
                 </button>
               )}
             </div>

@@ -15,8 +15,8 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { FormSubmission } from "@/types";
-import { formSubmissionsList } from "@/data/mockData";
+import { FormSubmission, ServiceDeskTicket } from "@/types";
+import { formSubmissionsList, serviceDeskTicketsList } from "@/data/mockData";
 import { useToast } from "../common/Toast";
 
 interface FormField {
@@ -30,8 +30,9 @@ interface FormField {
 
 export function FormsView() {
   const { toast } = useToast();
-  const [tab, setTab] = useState<"submissions" | "builder">("submissions");
+  const [tab, setTab] = useState<"submissions" | "builder" | "service-desk">("submissions");
   const [submissions, setSubmissions] = useState<FormSubmission[]>(formSubmissionsList);
+  const [tickets, setTickets] = useState<ServiceDeskTicket[]>(serviceDeskTicketsList);
   const [selectedSub, setSelectedSub] = useState<FormSubmission | null>(null);
 
   // Form builder fields state
@@ -87,7 +88,7 @@ export function FormsView() {
           </p>
         </div>
 
-        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[12px]">
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[12px] flex-wrap gap-1">
           <button
             onClick={() => setTab("submissions")}
             className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
@@ -106,12 +107,83 @@ export function FormsView() {
                 : "text-slate-500 hover:text-slate-900"
             }`}
           >
-            Interactive Form Builder
+            Form Builder
+          </button>
+          <button
+            onClick={() => setTab("service-desk")}
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+              tab === "service-desk"
+                ? "bg-white dark:bg-slate-700 text-[#0066cc] dark:text-sky-400 shadow-xs font-semibold"
+                : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            Service Desk ({tickets.length})
           </button>
         </div>
       </div>
 
-      {tab === "submissions" ? (
+      {tab === "service-desk" && (
+        <div className="space-y-3">
+          {tickets.map((tkt) => (
+            <div
+              key={tkt.id}
+              className="p-5 rounded-2xl ref-card flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[#0066cc]/40 transition-all"
+            >
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-[11px] font-bold text-[#0055b3] dark:text-sky-300 bg-[#edf2fe] dark:bg-blue-950/50 px-2 py-0.5 rounded">
+                    {tkt.ticketNumber}
+                  </span>
+                  <span
+                    className={`text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                      tkt.priority === "Urgent"
+                        ? "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                        : tkt.priority === "High"
+                        ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600"
+                    }`}
+                  >
+                    {tkt.priority}
+                  </span>
+                  <span className="text-[11.5px] text-slate-400">• {tkt.category}</span>
+                  <span className="text-[11px] text-slate-400">• SLA Target: {tkt.slaTarget}</span>
+                </div>
+
+                <h3 className="text-[15.5px] font-bold text-slate-900 dark:text-white">
+                  {tkt.title}
+                </h3>
+                <div className="text-[12px] text-slate-500 flex items-center gap-4 flex-wrap">
+                  <span>Requester: <strong className="text-slate-700 dark:text-slate-300">{tkt.requesterName}</strong> ({tkt.requesterEmail})</span>
+                  <span>Assigned: {tkt.assignedTo}</span>
+                  <span>Created: {tkt.createdAt}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                <select
+                  value={tkt.status}
+                  onChange={(e) => {
+                    const newStatus = e.target.value as any;
+                    setTickets((prev) =>
+                      prev.map((t) => (t.id === tkt.id ? { ...t, status: newStatus } : t))
+                    );
+                    toast("Ticket Status Updated", `${tkt.ticketNumber} changed to ${newStatus}.`, "success");
+                  }}
+                  className="h-[34px] px-3 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none"
+                >
+                  <option value="Open">Open</option>
+                  <option value="Assigned">Assigned</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Resolved">Resolved</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === "submissions" && (
         <div className="space-y-3">
           <div className="rounded-2xl ref-card overflow-hidden">
             <table className="w-full text-left text-[12.5px]">
@@ -191,7 +263,9 @@ export function FormsView() {
             </table>
           </div>
         </div>
-      ) : (
+      )}
+
+      {tab === "builder" && (
         /* Interactive Form Builder */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Builder Canvas (7 cols) */}
