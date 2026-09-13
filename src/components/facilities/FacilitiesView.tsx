@@ -20,18 +20,45 @@ import {
   Activity,
   FileText,
   BadgeAlert,
+  Sliders,
+  Check,
 } from "lucide-react";
-import { Facility, Equipment, ServiceCatalogueItem } from "@/types";
-import { facilitiesList, equipmentList, serviceCatalogueList } from "@/data/mockData";
+import {
+  Facility,
+  Equipment,
+  ServiceCatalogueItem,
+  SIFInstrument,
+  SampleCharacterizationRequest,
+  EquipmentCalibrationRecord,
+  EquipmentMaintenanceLog,
+  FacilityBooking,
+} from "@/types";
+import {
+  facilitiesList,
+  equipmentList,
+  serviceCatalogueList,
+  sifInstrumentsList,
+  sampleCharacterizationRequestsList,
+  equipmentCalibrationRecordsList,
+  equipmentMaintenanceLogsList,
+  facilityBookingsList,
+} from "@/data/mockData";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "../common/Toast";
 
 export function FacilitiesView() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"facilities" | "equipment" | "services">("equipment");
+  const [activeTab, setActiveTab] = useState<
+    "sif" | "sample-requests" | "equipment" | "facilities" | "services" | "calibration" | "booking"
+  >("sif");
   const [facilities, setFacilities] = useState<Facility[]>(facilitiesList);
   const [equipment, setEquipment] = useState<Equipment[]>(equipmentList);
   const [services, setServices] = useState<ServiceCatalogueItem[]>(serviceCatalogueList);
+  const [sifInstruments, setSifInstruments] = useState<SIFInstrument[]>(sifInstrumentsList);
+  const [sampleRequests, setSampleRequests] = useState<SampleCharacterizationRequest[]>(sampleCharacterizationRequestsList);
+  const [calibrations, setCalibrations] = useState<EquipmentCalibrationRecord[]>(equipmentCalibrationRecordsList);
+  const [maintenanceLogs, setMaintenanceLogs] = useState<EquipmentMaintenanceLog[]>(equipmentMaintenanceLogsList);
+  const [bookings, setBookings] = useState<FacilityBooking[]>(facilityBookingsList);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -170,11 +197,15 @@ export function FacilitiesView() {
       </div>
 
       {/* Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-1 text-[13px]">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-1 text-[13px] overflow-x-auto">
         {[
-          { id: "equipment", label: `Operational Equipment (${equipment.length})`, icon: Cpu },
-          { id: "facilities", label: `Specialized Labs & Facilities (${facilities.length})`, icon: Building },
-          { id: "services", label: `Service Catalogue & Requests (${services.length})`, icon: Wrench },
+          { id: "sif", label: `SIF Core (${sifInstruments.length})`, icon: Sparkles },
+          { id: "sample-requests", label: `Sample Testing Requests (${sampleRequests.length})`, icon: FileText },
+          { id: "equipment", label: `Equipment (${equipment.length})`, icon: Cpu },
+          { id: "facilities", label: `Specialized Labs (${facilities.length})`, icon: Building },
+          { id: "services", label: `Service Rates (${services.length})`, icon: Wrench },
+          { id: "calibration", label: `Calibration & Maintenance (${calibrations.length})`, icon: Shield },
+          { id: "booking", label: `Facility Bookings (${bookings.length})`, icon: Calendar },
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -394,6 +425,386 @@ export function FacilitiesView() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 4: SIF (SOPHISTICATED INSTRUMENTATION FACILITY) */}
+      {/* ========================================== */}
+      {activeTab === "sif" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sifInstruments.map((inst) => (
+              <div
+                key={inst.id}
+                className="p-5 rounded-2xl ref-card flex flex-col justify-between space-y-4 hover:border-[#0066cc]/40 transition-all"
+              >
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-bold text-[#0055b3] dark:text-sky-300 bg-[#edf2fe] dark:bg-blue-950/50 px-2.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/40">
+                      {inst.code}
+                    </span>
+                    <span
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                        inst.availabilityStatus === "Available"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : inst.availabilityStatus === "Calibration"
+                          ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          : "bg-blue-500/10 text-[#0066cc] border-blue-500/20"
+                      }`}
+                    >
+                      ● {inst.availabilityStatus}
+                    </span>
+                  </div>
+
+                  <h3 className="text-[16.5px] font-bold text-slate-900 dark:text-white leading-snug">
+                    {inst.name}
+                  </h3>
+
+                  <div className="text-[12px] text-slate-600 dark:text-slate-400 space-y-0.5">
+                    <div>Model: <strong className="text-slate-800 dark:text-slate-200">{inst.model}</strong> • {inst.manufacturer}</div>
+                    <div>Detector / Sensor: {inst.technicalSpecs.detector}</div>
+                    <div>Resolution / Range: <strong className="text-[#0066cc] dark:text-sky-400">{inst.technicalSpecs.resolutionRange}</strong></div>
+                  </div>
+
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1">
+                      Supported Analytical Techniques:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {inst.technicalSpecs.supportedTechniques.map((tech) => (
+                        <span
+                          key={tech}
+                          className="px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 text-[11.5px] text-slate-500 dark:text-slate-400">
+                    <strong className="text-slate-700 dark:text-slate-300">Sample Specs:</strong> {inst.sampleRequirements}
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                    <div className="p-1.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                      <span className="text-slate-400 block text-[10px]">Scholar</span>
+                      <strong className="text-[#0066cc] dark:text-sky-300">₹{inst.pricing.internalStudentINR}</strong>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                      <span className="text-slate-400 block text-[10px]">Faculty</span>
+                      <strong className="text-[#0066cc] dark:text-sky-300">₹{inst.pricing.internalFacultyINR}</strong>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-purple-50/50 dark:bg-purple-950/20">
+                      <span className="text-slate-400 block text-[10px]">Academic</span>
+                      <strong className="text-purple-600 dark:text-purple-300">₹{inst.pricing.externalAcademicINR}</strong>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-emerald-50/50 dark:bg-emerald-950/20">
+                      <span className="text-slate-400 block text-[10px]">Industry</span>
+                      <strong className="text-emerald-600 dark:text-emerald-300">₹{inst.pricing.externalIndustryINR}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div className="text-[11.5px] text-slate-500">
+                    Operator: <strong className="text-slate-700 dark:text-slate-300">{inst.operatorName}</strong>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        toast("SOP Protocol Downloaded", `Standard Operating Procedure for ${inst.name} saved.`, "info");
+                      }}
+                      className="btn-secondary h-[30px] text-[11px]"
+                    >
+                      SOP Protocol
+                    </button>
+                    <button
+                      onClick={() => {
+                        toast("SIF Booking Form Queued", `Initiated testing reservation for ${inst.name}.`, "success");
+                      }}
+                      className="btn-primary h-[30px] text-[11px]"
+                    >
+                      Book Slot
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 5: SAMPLE CHARACTERIZATION & TESTING WORKFLOW */}
+      {/* ========================================== */}
+      {activeTab === "sample-requests" && (
+        <div className="space-y-4">
+          {sampleRequests.map((req) => (
+            <div
+              key={req.id}
+              className="p-5 rounded-2xl ref-card space-y-4 hover:border-[#0066cc]/40 transition-all"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[11.5px] font-bold text-[#0055b3] dark:text-sky-300 bg-[#edf2fe] dark:bg-blue-950/50 px-2.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/40">
+                      {req.requestNumber}
+                    </span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600">
+                      {req.client.type}
+                    </span>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-[#0066cc] dark:text-sky-300 border border-blue-500/20">
+                      Stage: {req.workflowStage}
+                    </span>
+                    <span className="text-[11.5px] text-slate-400">
+                      Condition: <strong className="text-emerald-600">{req.sampleConditionOnReceipt || "Pending Receipt"}</strong>
+                    </span>
+                  </div>
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                    Client: {req.client.name} — <span className="text-slate-500 font-normal">{req.client.organization}</span>
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <div className="text-[11px] text-slate-400">Quotation</div>
+                    <div className="text-[15px] font-bold text-slate-900 dark:text-white">
+                      ₹{req.quotationAmountINR?.toLocaleString("en-IN") || "Under Review"}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const stages: SampleCharacterizationRequest["workflowStage"][] = [
+                        "Draft", "Submitted", "Technical Review", "Quotation", "Approved",
+                        "Scheduled", "Sample Received", "Analysis In Progress", "QA Review",
+                        "Report Generated", "Completed"
+                      ];
+                      const currentIdx = stages.indexOf(req.workflowStage);
+                      const nextStage = stages[Math.min(stages.length - 1, currentIdx + 1)];
+                      setSampleRequests((prev) =>
+                        prev.map((item) => (item.id === req.id ? { ...item, workflowStage: nextStage } : item))
+                      );
+                      toast("Sample Workflow Advanced", `Request ${req.requestNumber} moved to ${nextStage}.`, "success");
+                    }}
+                    className="btn-primary h-[34px] text-xs flex items-center gap-1.5"
+                  >
+                    <span>Advance Stage</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sample Items Breakdown Table */}
+              <div>
+                <span className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">
+                  Sample Batch Manifest ({req.samples.length} Samples):
+                </span>
+                <div className="overflow-x-auto rounded-xl border border-slate-200/70 dark:border-slate-800">
+                  <table className="w-full text-[12px] text-left">
+                    <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 font-medium border-b border-slate-200/70 dark:border-slate-800">
+                      <tr>
+                        <th className="py-2 px-3">Sample ID</th>
+                        <th className="py-2 px-3">Sample Name</th>
+                        <th className="py-2 px-3">Type</th>
+                        <th className="py-2 px-3">Composition</th>
+                        <th className="py-2 px-3">Testing Specifications</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {req.samples.map((smp) => (
+                        <tr key={smp.sampleId} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                          <td className="py-2 px-3 font-mono font-bold text-[#0066cc]">{smp.sampleId}</td>
+                          <td className="py-2 px-3 font-medium text-slate-900 dark:text-white">{smp.name}</td>
+                          <td className="py-2 px-3 text-slate-500">{smp.sampleType}</td>
+                          <td className="py-2 px-3 text-slate-600 dark:text-slate-300">{smp.composition}</td>
+                          <td className="py-2 px-3 text-slate-500">{smp.measurementDetails}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Chain of Custody Audit Log */}
+              <div>
+                <span className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Chain of Custody Log:
+                </span>
+                <div className="space-y-1">
+                  {req.chainOfCustodyLog.map((log, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 rounded-lg bg-slate-50/80 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800 text-[11px] flex items-center justify-between gap-2"
+                    >
+                      <span className="text-slate-400 font-mono">{log.timestamp}</span>
+                      <strong className="text-slate-800 dark:text-slate-200">{log.action}</strong>
+                      <span className="text-slate-500">({log.handledBy})</span>
+                      <span className="text-slate-400 italic truncate max-w-xs">{log.remarks}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 6: CALIBRATION & PREVENTIVE MAINTENANCE LOGS */}
+      {/* ========================================== */}
+      {activeTab === "calibration" && (
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#0066cc]" />
+              <span>NABL Instrument Calibration Schedule</span>
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-slate-200/70 dark:border-slate-800">
+              <table className="w-full text-[12px] text-left">
+                <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 font-medium border-b border-slate-200/70 dark:border-slate-800">
+                  <tr>
+                    <th className="py-2.5 px-3">Equipment</th>
+                    <th className="py-2.5 px-3">Serial No</th>
+                    <th className="py-2.5 px-3">Calibration Vendor</th>
+                    <th className="py-2.5 px-3">Certificate Ref</th>
+                    <th className="py-2.5 px-3">Last Calibration</th>
+                    <th className="py-2.5 px-3">Next Due</th>
+                    <th className="py-2.5 px-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {calibrations.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">{c.equipmentName}</td>
+                      <td className="py-2.5 px-3 font-mono text-slate-500">{c.serialNumber}</td>
+                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">{c.vendor}</td>
+                      <td className="py-2.5 px-3 font-mono text-[#0066cc]">{c.certificateNumber}</td>
+                      <td className="py-2.5 px-3 text-slate-500">{c.lastCalibrationDate}</td>
+                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{c.nextCalibrationDate}</td>
+                      <td className="py-2.5 px-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                            c.status === "Valid"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          }`}
+                        >
+                          ● {c.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-purple-600" />
+              <span>Preventive Maintenance & MTBF Register</span>
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-slate-200/70 dark:border-slate-800">
+              <table className="w-full text-[12px] text-left">
+                <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 font-medium border-b border-slate-200/70 dark:border-slate-800">
+                  <tr>
+                    <th className="py-2.5 px-3">Equipment</th>
+                    <th className="py-2.5 px-3">Service Date</th>
+                    <th className="py-2.5 px-3">Maintenance Action</th>
+                    <th className="py-2.5 px-3">Downtime</th>
+                    <th className="py-2.5 px-3">Cost (INR)</th>
+                    <th className="py-2.5 px-3">Service Engineer</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {maintenanceLogs.map((m) => (
+                    <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                      <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">{m.equipmentName}</td>
+                      <td className="py-2.5 px-3 text-slate-500">{m.serviceDate}</td>
+                      <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300">{m.actionTaken}</td>
+                      <td className="py-2.5 px-3 font-mono text-amber-600 font-bold">{m.downtimeHours} hrs</td>
+                      <td className="py-2.5 px-3 font-mono font-bold">₹{m.costINR.toLocaleString("en-IN")}</td>
+                      <td className="py-2.5 px-3 text-slate-500">{m.technician}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 7: FACILITY & EQUIPMENT BOOKING ENGINE */}
+      {/* ========================================== */}
+      {activeTab === "booking" && (
+        <div className="space-y-4">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/70 dark:border-slate-800">
+            <table className="w-full text-[12px] text-left">
+              <thead className="bg-slate-50 dark:bg-slate-900 text-slate-500 font-medium border-b border-slate-200/70 dark:border-slate-800">
+                <tr>
+                  <th className="py-2.5 px-3">Booking Ref</th>
+                  <th className="py-2.5 px-3">Facility / Rig</th>
+                  <th className="py-2.5 px-3">User</th>
+                  <th className="py-2.5 px-3">Category</th>
+                  <th className="py-2.5 px-3">Time Slot</th>
+                  <th className="py-2.5 px-3">Research Purpose</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {bookings.map((b) => (
+                  <tr key={b.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                    <td className="py-2.5 px-3 font-mono font-bold text-[#0066cc]">{b.bookingRef}</td>
+                    <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">
+                      {b.equipmentName || b.facilityName}
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <div className="font-medium text-slate-900 dark:text-white">{b.userName}</div>
+                      <div className="text-[10.5px] text-slate-400">{b.userEmail}</div>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      <span className="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-blue-500/10 text-[#0066cc]">
+                        {b.userType}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px]">{b.startTime}</td>
+                    <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{b.purpose}</td>
+                    <td className="py-2.5 px-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                          b.status === "Approved"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                        }`}
+                      >
+                        ● {b.status}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-3">
+                      {b.status === "Requested" ? (
+                        <button
+                          onClick={() => {
+                            setBookings((prev) =>
+                              prev.map((item) => (item.id === b.id ? { ...item, status: "Approved" } : item))
+                            );
+                            toast("Booking Approved", `Slot confirmed for ${b.userName}.`, "success");
+                          }}
+                          className="btn-primary h-[28px] text-[11px] px-2.5"
+                        >
+                          Approve
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">Confirmed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

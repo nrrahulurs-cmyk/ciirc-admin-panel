@@ -218,6 +218,15 @@ export interface Publication {
   year: number;
   status: "Published" | "In Press" | "Under Review" | "Draft";
   workflowStage?: PublicationWorkflowStage;
+  iprClearanceStatus?: "Cleared" | "Pending IPR Review" | "Exempt" | "Flagged";
+  contributors?: {
+    name: string;
+    role: "PI" | "Co-PI" | "Researcher" | "Research Scholar" | "Student" | "RA" | "P-DRA" | "Technical Staff" | "External Collaborator";
+    notes?: string;
+    researcherId?: string;
+  }[];
+  acknowledgements?: string;
+  fundingGrantId?: string;
   doi: string;
   citations: number;
   indexing?: ("Scopus" | "Web of Science" | "IEEE Xplore" | "PubMed")[];
@@ -364,7 +373,24 @@ export interface ConsultancyEngagement {
   title: string;
   clientOrganization: string;
   piName: string;
+  piId?: string;
+  domainId?: string;
   budgetINR: number;
+  revenueSharePercent?: {
+    institute: number;
+    department: number;
+    piTeam: number;
+  };
+  expensesINR?: number;
+  externalResourceCostsINR?: number;
+  taxesINR?: number;
+  approvals?: {
+    role: string;
+    approverName: string;
+    status: "Pending" | "Approved" | "Rejected";
+    approvedAt?: string;
+  }[];
+  settlementStatus?: "Pending" | "Interim Settled" | "Final Settlement Completed";
   stage: "Lead" | "Discussion" | "Proposal" | "Contract" | "Active" | "Completed";
   startDate: string;
   targetEndDate: string;
@@ -538,4 +564,286 @@ export interface KPICardData {
   timeframe: string;
   sparkline: number[];
   icon: string;
+}
+
+// ==========================================
+// 8. IPR & TECHNOLOGY TRANSFER
+// ==========================================
+
+export type IPRType = "Invention Disclosure" | "Provisional Patent" | "Complete Patent" | "Design Registration" | "Copyright / Software";
+
+export interface IPRRecord {
+  id: string;
+  disclosureNumber: string;
+  title: string;
+  projectId?: string;
+  projectTitle?: string;
+  leadResearcher: string;
+  researcherId?: string;
+  inventors: string[];
+  technologyDomain: string;
+  confidentialityLevel: "High" | "Restricted" | "Standard";
+  disclosureDate: string;
+  iprType: IPRType;
+  patentPotential: "High" | "Medium" | "Low" | "Defensive Publication";
+  reviewStatus: "Submitted" | "IPR Committee Review" | "Prior Art Search" | "Recommended for Filing" | "Publication Cleared" | "Rejected";
+  reviewerName?: string;
+  reviewerDecision?: "Clear for Filing" | "Clear for Publication" | "Modifications Needed" | "Withhold";
+  reviewerComments?: string;
+  decisionDate?: string;
+  documents: string[];
+}
+
+export interface TechnologyTransfer {
+  id: string;
+  code: string;
+  title: string;
+  leadResearcher: string;
+  researcherId?: string;
+  projectId?: string;
+  patentId?: string;
+  productId?: string;
+  trl: number; // 1 - 9
+  prototypeStatus: string;
+  ipStatus: "Patent Filed" | "Patent Granted" | "Trade Secret" | "Open Source";
+  industryInterest: "High" | "Active Discussions" | "MOU Signed" | "Evaluating";
+  licensingStatus: "Available" | "Exclusive Negotiation" | "Non-Exclusive Licensed" | "Transferred";
+  commercialPartner?: string;
+  partnerId?: string;
+  revenueINR?: number;
+  pipelineStage: "Research" | "Prototype" | "Validation" | "IP Protected" | "Industry Engagement" | "Licensing" | "Commercialized";
+}
+
+export interface InstitutionalAward {
+  id: string;
+  title: string;
+  recipientName: string;
+  recipientId?: string;
+  institution: string;
+  category: "National Award" | "International Recognition" | "Young Scientist" | "Best Paper" | "Fellowship" | "Innovation Honor";
+  year: number;
+  level: "National" | "International" | "State" | "University";
+  domainId?: string;
+  projectId?: string;
+  evidenceUrl?: string;
+  certificateUrl?: string;
+}
+
+// ==========================================
+// 9. SIF & ADVANCED LAB OPERATIONS
+// ==========================================
+
+export interface SIFInstrument {
+  id: string;
+  code: string;
+  name: string;
+  model: string;
+  manufacturer: string;
+  technicalSpecs: {
+    resolutionRange: string;
+    detector: string;
+    capacity: string;
+    supportedTechniques: string[];
+  };
+  sampleRequirements: string;
+  sopUrl?: string;
+  userGuideUrl?: string;
+  operatorName: string;
+  operatorEmail: string;
+  facilityId: string;
+  facilityName: string;
+  availabilityStatus: "Available" | "Booked" | "Maintenance" | "Calibration";
+  pricing: {
+    internalStudentINR: number;
+    internalFacultyINR: number;
+    externalAcademicINR: number;
+    externalIndustryINR: number;
+  };
+  externalAccessEnabled: boolean;
+}
+
+export interface SampleCharacterizationRequest {
+  id: string;
+  requestNumber: string;
+  client: {
+    name: string;
+    organization: string;
+    type: "Internal Scholar" | "Internal Faculty" | "External Academic" | "External Industry";
+    address: string;
+    mobile: string;
+    email: string;
+    gstn?: string;
+  };
+  samples: {
+    sampleId: string;
+    name: string;
+    sampleType: string;
+    composition: string;
+    measurementDetails: string;
+    specialHandling?: string;
+  }[];
+  requestedInstruments: string[]; // e.g. ["sif-01", "sif-02"]
+  preferredDate: string;
+  additionalRequirements?: string;
+  workflowStage:
+    | "Draft"
+    | "Submitted"
+    | "Technical Review"
+    | "Quotation"
+    | "Approved"
+    | "Scheduled"
+    | "Sample Received"
+    | "Analysis In Progress"
+    | "QA Review"
+    | "Report Generated"
+    | "Completed"
+    | "Cancelled";
+  technicianAssigned?: string;
+  sampleConditionOnReceipt?: "Good" | "Compromised" | "Insufficient Quantity" | "Hazardous";
+  chainOfCustodyLog: {
+    timestamp: string;
+    action: string;
+    handledBy: string;
+    remarks?: string;
+  }[];
+  analysisStatus: string;
+  resultFiles: string[];
+  quotationAmountINR?: number;
+  invoiceNumber?: string;
+  paymentStatus: "Unbilled" | "Quoted" | "Invoice Generated" | "Paid" | "Waived";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EquipmentCalibrationRecord {
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  serialNumber: string;
+  lastCalibrationDate: string;
+  nextCalibrationDate: string;
+  vendor: string;
+  certificateNumber: string;
+  certificateUrl?: string;
+  result: "Pass" | "Conditional Pass" | "Fail";
+  status: "Valid" | "Due Soon" | "Due" | "Expired";
+}
+
+export interface EquipmentMaintenanceLog {
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  vendor: string;
+  serviceDate: string;
+  issueType: "Preventive Maintenance" | "Breakdown" | "Optics Realignment" | "Software Upgrade";
+  actionTaken: string;
+  costINR: number;
+  downtimeHours: number;
+  nextScheduledService: string;
+  technician: string;
+  documents: string[];
+}
+
+export interface FacilityBooking {
+  id: string;
+  bookingRef: string;
+  facilityId: string;
+  facilityName: string;
+  equipmentId?: string;
+  equipmentName?: string;
+  userType: "Researcher" | "Student" | "Incubatee" | "Industry Client";
+  userName: string;
+  userEmail: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  status: "Requested" | "Approved" | "Active" | "Completed" | "Cancelled";
+  approvalBy?: string;
+}
+
+// ==========================================
+// 10. GOVERNANCE, COI & INCUBATION
+// ==========================================
+
+export interface ConflictOfInterestDisclosure {
+  id: string;
+  referenceNumber: string;
+  personName: string;
+  personRole: string;
+  personDepartment: string;
+  relatedProjectId?: string;
+  relatedProjectTitle?: string;
+  relatedOrganization: string;
+  disclosureDate: string;
+  description: string;
+  potentialConflictType: "Financial Interest" | "Advisory / Board Role" | "Family Affiliation" | "Procurement Entity" | "Equity Holding";
+  reviewStatus: "Declared" | "Under Review" | "Resolved" | "Rejected" | "Monitoring";
+  reviewerName?: string;
+  resolutionDetails?: string;
+  resolutionDate?: string;
+  restrictedAccess: boolean;
+}
+
+export interface IncubationAgreement {
+  id: string;
+  startupId: string;
+  startupName: string;
+  agreementType: "Incubation Agreement" | "Pre-Incubation MOU" | "Graduation Agreement";
+  equityStakePercent: number;
+  facilityUsageScope: string;
+  mentorshipAssigned: string;
+  studentInternshipSeats: number;
+  resourceQuota: string;
+  startDate: string;
+  durationMonths: number;
+  exitMilestones: string[];
+  status: "Active" | "Under Review" | "Renewed" | "Graduated" | "Terminated";
+}
+
+export interface TrainingProgram {
+  id: string;
+  programTitle: string;
+  domainId: string;
+  domainName: string;
+  trainerName: string;
+  trainerDesignation: string;
+  targetAudience: "Undergraduate" | "Postgraduate" | "Doctoral Scholars" | "Industry Engineers" | "Faculty Development";
+  organization: string;
+  startDate: string;
+  endDate: string;
+  capacity: number;
+  registeredCount: number;
+  attendedCount: number;
+  certificateIssued: boolean;
+  averageFeedbackScore: number; // e.g. 4.8 / 5
+}
+
+export interface InstitutionalTimelineEvent {
+  id: string;
+  year: number;
+  date: string;
+  title: string;
+  category: "Foundation" | "Major Grant" | "SIF Inauguration" | "Patent Breakthrough" | "National Award" | "Strategic Alliance" | "Accreditation";
+  description: string;
+  image?: string;
+  linkedProjectId?: string;
+  linkedPatentId?: string;
+  linkedPublicationId?: string;
+  linkedAwardId?: string;
+  importance: "Milestone" | "Key Event" | "Standard";
+  publicVisibility: boolean;
+}
+
+export interface CanonicalImpactMetric {
+  id: string;
+  key: string;
+  label: string;
+  value: number | string;
+  unit: string;
+  period: string;
+  source: string;
+  verified: boolean;
+  publicVisibility: boolean;
+  priority: number;
+  lastUpdated: string;
 }

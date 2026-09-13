@@ -25,6 +25,9 @@ import {
   FileCheck,
   Shield,
   Eye,
+  ShieldCheck,
+  Briefcase,
+  Medal,
 } from "lucide-react";
 import {
   Researcher,
@@ -33,6 +36,9 @@ import {
   Publication,
   Patent,
   ProductTechnology,
+  IPRRecord,
+  TechnologyTransfer,
+  InstitutionalAward,
 } from "@/types";
 import {
   researchersList,
@@ -41,6 +47,9 @@ import {
   publicationsList,
   patentsList,
   productsTechnologyList,
+  iprRecordsList,
+  technologyTransferList,
+  institutionalAwardsList,
 } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { ResearcherDetailDrawer } from "./ResearcherDetailDrawer";
@@ -50,7 +59,7 @@ import { RelationshipExplorerModal } from "./RelationshipExplorerModal";
 import { useToast } from "../common/Toast";
 
 interface ResearchManagementViewProps {
-  initialTab?: "researchers" | "domains" | "projects" | "publications" | "patents";
+  initialTab?: "researchers" | "domains" | "projects" | "publications" | "patents" | "ipr" | "tech-transfer" | "awards";
   onOpenQuickCreate: (type?: string) => void;
 }
 
@@ -59,7 +68,7 @@ export function ResearchManagementView({
   onOpenQuickCreate,
 }: ResearchManagementViewProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"researchers" | "domains" | "projects" | "publications" | "patents">(initialTab);
+  const [activeTab, setActiveTab] = useState<"researchers" | "domains" | "projects" | "publications" | "patents" | "ipr" | "tech-transfer" | "awards">(initialTab);
 
   // States
   const [researchers, setResearchers] = useState<Researcher[]>(researchersList);
@@ -68,6 +77,9 @@ export function ResearchManagementView({
   const [publications, setPublications] = useState<Publication[]>(publicationsList);
   const [patents, setPatents] = useState<Patent[]>(patentsList);
   const [technologies, setTechnologies] = useState<ProductTechnology[]>(productsTechnologyList);
+  const [iprRecords, setIprRecords] = useState<IPRRecord[]>(iprRecordsList);
+  const [techTransfers, setTechTransfers] = useState<TechnologyTransfer[]>(technologyTransferList);
+  const [awards, setAwards] = useState<InstitutionalAward[]>(institutionalAwardsList);
 
   // Drawers & Modals
   const [selectedResearcher, setSelectedResearcher] = useState<Researcher | null>(null);
@@ -251,7 +263,10 @@ export function ResearchManagementView({
             { id: "domains", label: `Domains & Vistas (${domains.length})`, icon: Layers },
             { id: "projects", label: `Grants & Projects (${projects.length})`, icon: FolderGit2 },
             { id: "publications", label: `Publications (${publications.length})`, icon: BookOpen },
-            { id: "patents", label: `Patents & Tech (${patents.length})`, icon: Award },
+            { id: "patents", label: `Patents (${patents.length})`, icon: Award },
+            { id: "ipr", label: `IPR Queue (${iprRecords.length})`, icon: ShieldCheck },
+            { id: "tech-transfer", label: `Tech Transfer (${techTransfers.length})`, icon: Briefcase },
+            { id: "awards", label: `Honors & Awards (${awards.length})`, icon: Medal },
           ].map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -602,6 +617,15 @@ export function ResearchManagementView({
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600">
                     Scopus Indexed
                   </span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                      pub.iprClearanceStatus === "Pending IPR Review"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                        : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    }`}
+                  >
+                    {pub.iprClearanceStatus === "Pending IPR Review" ? "● Pending IPR Review" : "✓ IPR Cleared"}
+                  </span>
                 </div>
 
                 <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-snug">
@@ -635,7 +659,7 @@ export function ResearchManagementView({
       )}
 
       {/* ========================================== */}
-      {/* TAB 5: PATENTS & TECHNOLOGY TRANSFER */}
+      {/* TAB 5: PATENTS & INTELLECTUAL PROPERTY */}
       {/* ========================================== */}
       {activeTab === "patents" && (
         <div className="space-y-4">
@@ -676,35 +700,187 @@ export function ResearchManagementView({
               </div>
             ))}
           </div>
+        </div>
+      )}
 
-          {/* Prototype / Products Showcase */}
-          <div className="pt-4">
-            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-[#0066cc]" />
-              <span>Institutional Technologies & Prototypes (TRL 5–8)</span>
-            </h3>
+      {/* ========================================== */}
+      {/* TAB 6: IPR DISCLOSURE & GOVERNANCE QUEUE */}
+      {/* ========================================== */}
+      {activeTab === "ipr" && (
+        <div className="space-y-3">
+          {iprRecords.map((ipr) => (
+            <div
+              key={ipr.id}
+              className="p-5 rounded-2xl ref-card flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-blue-500/40 transition-all"
+            >
+              <div className="space-y-2 flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-mono text-[11px] font-bold text-[#0055b3] dark:text-sky-300 bg-[#edf2fe] dark:bg-blue-950/50 px-2.5 py-0.5 rounded border border-blue-200/60 dark:border-blue-800/40">
+                    {ipr.disclosureNumber}
+                  </span>
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                    {ipr.iprType}
+                  </span>
+                  <span
+                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                      ipr.reviewStatus === "Recommended for Filing"
+                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                        : ipr.reviewStatus === "Publication Cleared"
+                        ? "bg-blue-500/10 text-[#0066cc] border-blue-500/20"
+                        : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                    }`}
+                  >
+                    ● {ipr.reviewStatus}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Potential: <strong className="text-slate-600 dark:text-slate-300">{ipr.patentPotential}</strong>
+                  </span>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {technologies.map((tech) => (
-                <div key={tech.id} className="p-4 rounded-xl ref-card space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] font-bold text-[#0066cc] bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded">
-                      {tech.code}
+                <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-snug">
+                  {ipr.title}
+                </h3>
+
+                <div className="text-[12px] text-slate-500 dark:text-slate-400 flex items-center gap-4 flex-wrap">
+                  <span>Lead: <strong className="text-slate-700 dark:text-slate-300">{ipr.leadResearcher}</strong></span>
+                  <span>Inventors: {ipr.inventors.join(", ")}</span>
+                  <span>Domain: {ipr.technologyDomain}</span>
+                  <span>Disclosed: {ipr.disclosureDate}</span>
+                </div>
+
+                {ipr.reviewerComments && (
+                  <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-[12px] text-slate-600 dark:text-slate-300 mt-1">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 block mb-0.5">
+                      Reviewer Decision: {ipr.reviewerDecision} ({ipr.reviewerName})
                     </span>
-                    <span className="text-[11px] font-bold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded">
-                      TRL {tech.trl} ({tech.stage})
+                    {ipr.reviewerComments}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                <button
+                  onClick={() => {
+                    setIprRecords((prev) =>
+                      prev.map((item) =>
+                        item.id === ipr.id
+                          ? { ...item, reviewStatus: "Recommended for Filing", reviewerDecision: "Clear for Filing" }
+                          : item
+                      )
+                    );
+                    toast("IPR Cleared for Patent Filing", `"${ipr.title}" approved for provisional specification preparation.`, "success");
+                  }}
+                  className="btn-primary h-[34px] text-xs flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Recommend Filing</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 7: TECHNOLOGY TRANSFER & COMMERCIALIZATION */}
+      {/* ========================================== */}
+      {activeTab === "tech-transfer" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {techTransfers.map((tt) => (
+              <div
+                key={tt.id}
+                className="p-5 rounded-2xl ref-card flex flex-col justify-between space-y-3 hover:border-emerald-500/40 transition-all"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
+                      {tt.code}
+                    </span>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-[#0066cc] dark:text-sky-300">
+                      TRL {tt.trl} ({tt.pipelineStage})
                     </span>
                   </div>
-                  <h4 className="font-bold text-[14px] text-slate-900 dark:text-white">{tech.name}</h4>
-                  <p className="text-[12px] text-slate-600 dark:text-slate-400">{tech.tagline}</p>
-                  <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span>Lead: {tech.leadResearcher}</span>
-                    {tech.industryPartner && <span>Partner: {tech.industryPartner}</span>}
+
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-snug">
+                    {tt.title}
+                  </h3>
+
+                  <p className="text-[12px] text-slate-600 dark:text-slate-400">
+                    Prototype Status: <strong className="text-slate-700 dark:text-slate-300">{tt.prototypeStatus}</strong>
+                  </p>
+
+                  <div className="text-[12px] text-slate-500 space-y-0.5">
+                    <div>Lead Scientist: <strong className="text-slate-700 dark:text-slate-300">{tt.leadResearcher}</strong></div>
+                    <div>Commercial Partner: <strong className="text-[#0066cc] dark:text-sky-400">{tt.commercialPartner || "Under Negotiation"}</strong></div>
+                    <div>Licensing Status: <span className="font-semibold text-emerald-600">{tt.licensingStatus}</span></div>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">
+                    Realized Revenue: <strong className="text-slate-900 dark:text-white">₹{((tt.revenueINR || 0) / 100000).toFixed(1)} Lakhs</strong>
+                  </span>
+                  <button
+                    onClick={() => {
+                      toast("Tech Transfer Dossier Dispatched", `Licensing agreement brief generated for ${tt.title}.`, "success");
+                    }}
+                    className="btn-secondary h-[30px] text-[11px]"
+                  >
+                    View Term Sheet
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 8: INSTITUTIONAL & FACULTY HONORS */}
+      {/* ========================================== */}
+      {activeTab === "awards" && (
+        <div className="space-y-3">
+          {awards.map((awd) => (
+            <div
+              key={awd.id}
+              className="p-5 rounded-2xl ref-card flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded">
+                    Year {awd.year}
+                  </span>
+                  <span className="text-[11px] font-semibold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded">
+                    {awd.category}
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    • Level: {awd.level}
+                  </span>
+                </div>
+
+                <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                  {awd.title}
+                </h3>
+
+                <p className="text-[12px] text-slate-600 dark:text-slate-400">
+                  Recipient: <strong className="text-slate-800 dark:text-slate-200">{awd.recipientName}</strong> • Conferring Institution: {awd.institution}
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <button
+                  onClick={() => {
+                    toast("Award Citation Downloaded", `Official citation for "${awd.title}" retrieved.`, "info");
+                  }}
+                  className="btn-secondary h-[32px] text-xs flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Citation Document</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

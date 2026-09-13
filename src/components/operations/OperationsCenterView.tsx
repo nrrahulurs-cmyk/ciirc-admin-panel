@@ -18,9 +18,23 @@ import {
   Sparkles,
   RefreshCw,
   Sliders,
+  GraduationCap,
+  History,
+  Award,
 } from "lucide-react";
-import { OperationalDeadline, DataQualityIssue, ModuleId } from "@/types";
-import { operationalDeadlinesList, dataQualityIssuesList } from "@/data/mockData";
+import {
+  OperationalDeadline,
+  DataQualityIssue,
+  ModuleId,
+  TrainingProgram,
+  InstitutionalTimelineEvent,
+} from "@/types";
+import {
+  operationalDeadlinesList,
+  dataQualityIssuesList,
+  trainingProgramsList,
+  institutionalTimelineList,
+} from "@/data/mockData";
 import { useToast } from "../common/Toast";
 
 interface OperationsCenterViewProps {
@@ -29,11 +43,13 @@ interface OperationsCenterViewProps {
 
 export function OperationsCenterView({ onSelectModule }: OperationsCenterViewProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"calendar" | "quality">("calendar");
+  const [activeTab, setActiveTab] = useState<"calendar" | "quality" | "training" | "timeline">("calendar");
   const [timelineWindow, setTimelineWindow] = useState<"7days" | "30days" | "90days">("30days");
 
   const [deadlines, setDeadlines] = useState<OperationalDeadline[]>(operationalDeadlinesList);
   const [issues, setIssues] = useState<DataQualityIssue[]>(dataQualityIssuesList);
+  const [trainingPrograms, setTrainingPrograms] = useState<TrainingProgram[]>(trainingProgramsList);
+  const [timelineEvents, setTimelineEvents] = useState<InstitutionalTimelineEvent[]>(institutionalTimelineList);
   const [qualityScore, setQualityScore] = useState(93);
 
   const handleResolveIssue = (issueId: string, actionTitle: string, targetModule: ModuleId) => {
@@ -153,7 +169,31 @@ export function OperationsCenterView({ onSelectModule }: OperationsCenterViewPro
             }`}
           >
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Data Quality & Metadata Hygiene ({issues.length})</span>
+            <span>Data Quality ({issues.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("training")}
+            className={`h-[36px] px-3.5 rounded-xl font-medium flex items-center gap-2 transition-all ${
+              activeTab === "training"
+                ? "bg-[#edf2fe] dark:bg-blue-950/60 text-[#0066cc] dark:text-sky-300 font-semibold shadow-2xs"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <GraduationCap className="w-4 h-4 text-purple-600" />
+            <span>Training & Workshops ({trainingPrograms.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("timeline")}
+            className={`h-[36px] px-3.5 rounded-xl font-medium flex items-center gap-2 transition-all ${
+              activeTab === "timeline"
+                ? "bg-[#edf2fe] dark:bg-blue-950/60 text-[#0066cc] dark:text-sky-300 font-semibold shadow-2xs"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <History className="w-4 h-4 text-amber-600" />
+            <span>Institutional Timeline ({timelineEvents.length})</span>
           </button>
         </div>
 
@@ -279,6 +319,190 @@ export function OperationsCenterView({ onSelectModule }: OperationsCenterViewPro
                   <span>{iss.remediationAction}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: TRAINING & WORKSHOPS */}
+      {activeTab === "training" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] font-medium text-slate-400 block">Total Programs</span>
+              <div className="text-[24px] font-bold text-slate-900 dark:text-white">{trainingPrograms.length}</div>
+              <span className="text-[11px] text-purple-600 font-medium">Workshops, FDPs & Courses</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] font-medium text-slate-400 block">Total Registered</span>
+              <div className="text-[24px] font-bold text-slate-900 dark:text-white">
+                {trainingPrograms.reduce((acc, p) => acc + p.registeredCount, 0)}
+              </div>
+              <span className="text-[11px] text-emerald-600 font-medium">Researchers & Scholars</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] font-medium text-slate-400 block">Avg Feedback Score</span>
+              <div className="text-[24px] font-bold text-slate-900 dark:text-white">
+                {(
+                  trainingPrograms.reduce((acc, p) => acc + (p.averageFeedbackScore || 0), 0) /
+                  (trainingPrograms.filter((p) => p.averageFeedbackScore).length || 1)
+                ).toFixed(2)}
+                <span className="text-[16px] text-slate-400">/5.0</span>
+              </div>
+              <span className="text-[11px] text-amber-500 font-medium">High Satisfaction Rating</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] font-medium text-slate-400 block">Certifications Issued</span>
+              <div className="text-[24px] font-bold text-slate-900 dark:text-white">
+                {trainingPrograms.filter((p) => p.certificateIssued).reduce((acc, p) => acc + p.attendedCount, 0)}
+              </div>
+              <span className="text-[11px] text-[#0066cc] font-medium">Verified Credentials</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {trainingPrograms.map((prog) => (
+              <div key={prog.id} className="p-5 rounded-2xl ref-card flex flex-col justify-between space-y-4 hover:border-purple-300 dark:hover:border-purple-800 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                      {prog.targetAudience}
+                    </span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      {prog.certificateIssued ? "Certified Program" : "Standard Training"}
+                    </span>
+                  </div>
+
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-snug">
+                    {prog.programTitle}
+                  </h3>
+
+                  <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Organized by: <strong className="text-slate-700 dark:text-slate-300">{prog.organization}</strong> ({prog.domainName})
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 text-[12px]">
+                    <div className="text-slate-500">
+                      Trainer: <strong className="text-slate-800 dark:text-slate-200">{prog.trainerName}</strong>
+                    </div>
+                    <div className="text-slate-500">
+                      Role: <strong className="text-slate-800 dark:text-slate-200">{prog.trainerDesignation}</strong>
+                    </div>
+                    <div className="text-slate-500">
+                      Dates: <strong className="text-slate-800 dark:text-slate-200">{prog.startDate} → {prog.endDate}</strong>
+                    </div>
+                    <div className="text-slate-500">
+                      Attended: <strong className="text-slate-800 dark:text-slate-200">{prog.attendedCount} / {prog.registeredCount}</strong>
+                    </div>
+                  </div>
+
+                  {/* Enrollment Progress */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex justify-between text-[11px] font-medium text-slate-500">
+                      <span>Capacity: {prog.registeredCount} / {prog.capacity}</span>
+                      <span>{Math.round((prog.registeredCount / prog.capacity) * 100)}%</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full bg-purple-600 rounded-full"
+                        style={{ width: `${Math.min(100, (prog.registeredCount / prog.capacity) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[11.5px] text-slate-400">
+                    ★ {prog.averageFeedbackScore}/5.0 Participant Score
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toast("Training Syllabus", `${prog.programTitle}: Course materials dispatched to participants.`, "info")}
+                      className="btn-secondary h-[30px] text-xs px-2.5"
+                    >
+                      Syllabus
+                    </button>
+                    <button
+                      onClick={() => toast("Certificates Issued", `Verified institutional credentials issued for ${prog.attendedCount} participants.`, "success")}
+                      className="btn-primary h-[30px] text-xs px-2.5 flex items-center gap-1"
+                    >
+                      <Award className="w-3.5 h-3.5" />
+                      <span>Certificates</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: HISTORICAL INSTITUTIONAL TIMELINE */}
+      {activeTab === "timeline" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 text-[12.5px] text-slate-600 dark:text-slate-300 flex items-center justify-between">
+            <div>
+              <strong>CIIRC Institutional Chronicles (2014 – Present):</strong> Canonical historical milestones, foundation charters, research chair appointments, major grants, and accreditation landmarks.
+            </div>
+            <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 shrink-0 ml-3">
+              {timelineEvents.length} Verified Milestones
+            </span>
+          </div>
+
+          <div className="relative border-l-2 border-slate-200 dark:border-slate-800 ml-4 pl-6 space-y-6">
+            {timelineEvents.map((evt) => (
+              <div key={evt.id} className="relative group">
+                {/* Node indicator */}
+                <div className={`absolute -left-[31px] top-1.5 w-4 h-4 rounded-full border-2 bg-white dark:bg-slate-900 transition-all ${
+                  evt.importance === "Milestone"
+                    ? "border-amber-500 ring-4 ring-amber-500/20"
+                    : "border-[#0066cc] ring-2 ring-blue-500/20"
+                }`} />
+
+                <div className={`p-5 rounded-2xl ref-card transition-all ${
+                  evt.importance === "Milestone" ? "border-amber-300/80 dark:border-amber-700/60 bg-amber-50/20 dark:bg-amber-950/10" : ""
+                }`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-extrabold text-[#0066cc] dark:text-sky-400 font-mono">
+                        {evt.year}
+                      </span>
+                      <span className="text-[11px] font-medium text-slate-400">
+                        ({evt.date})
+                      </span>
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {evt.category}
+                      </span>
+                      {evt.importance === "Milestone" && (
+                        <span className="text-[10.5px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          Milestone
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => toast("Verified Archive Record", `Opening verified archival record for: ${evt.title}`, "info")}
+                      className="text-[11.5px] text-[#0066cc] hover:underline font-medium flex items-center gap-1 shrink-0"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Archive Record</span>
+                    </button>
+                  </div>
+
+                  <h4 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1.5">
+                    {evt.title}
+                  </h4>
+
+                  <p className="text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
+                    {evt.description}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400">
+                    <span>Visibility: {evt.publicVisibility ? "Public Portal" : "Internal Restricted"}</span>
+                    <span>Status: Verified Institutional Archive</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

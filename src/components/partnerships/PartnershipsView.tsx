@@ -20,6 +20,7 @@ import {
   ArrowRight,
   TrendingUp,
   Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import {
   PartnerOrg,
@@ -27,6 +28,8 @@ import {
   ConsultancyEngagement,
   StartupEntity,
   IEDCProject,
+  ConflictOfInterestDisclosure,
+  IncubationAgreement,
 } from "@/types";
 import {
   partnerOrgsList,
@@ -34,19 +37,23 @@ import {
   consultancyProjectsList,
   startupsList,
   iedcProjectsList,
+  conflictOfInterestDisclosuresList,
+  incubationAgreementsList,
 } from "@/data/mockData";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "../common/Toast";
 
 export function PartnershipsView() {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<"mous" | "consultancy" | "startups" | "iedc">("mous");
+  const [activeTab, setActiveTab] = useState<"mous" | "consultancy" | "startups" | "iedc" | "coi">("mous");
 
   const [mous, setMous] = useState<InstitutionalMOU[]>(institutionalMOUsList);
   const [partners, setPartners] = useState<PartnerOrg[]>(partnerOrgsList);
   const [consultancies, setConsultancies] = useState<ConsultancyEngagement[]>(consultancyProjectsList);
   const [startups, setStartups] = useState<StartupEntity[]>(startupsList);
   const [iedcProjects, setIedcProjects] = useState<IEDCProject[]>(iedcProjectsList);
+  const [coiDisclosures, setCoiDisclosures] = useState<ConflictOfInterestDisclosure[]>(conflictOfInterestDisclosuresList);
+  const [incubationAgreements, setIncubationAgreements] = useState<IncubationAgreement[]>(incubationAgreementsList);
 
   const [search, setSearch] = useState("");
 
@@ -176,12 +183,13 @@ export function PartnershipsView() {
       </div>
 
       {/* Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-1 text-[13px]">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-1 text-[13px] overflow-x-auto">
         {[
           { id: "mous", label: `Active MOUs & Partners (${mous.length})`, icon: Handshake },
           { id: "consultancy", label: `Industrial Consultancy (${consultancies.length})`, icon: Briefcase },
           { id: "startups", label: `Incubated Startups (${startups.length})`, icon: Rocket },
           { id: "iedc", label: `IEDC Student Innovations (${iedcProjects.length})`, icon: GraduationCap },
+          { id: "coi", label: `Conflict of Interest (${coiDisclosures.length})`, icon: ShieldAlert },
         ].map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -286,11 +294,12 @@ export function PartnershipsView() {
                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
                   {con.title}
                 </h3>
-                <div className="text-[12px] text-slate-500">
-                  Client: <strong className="text-slate-800 dark:text-slate-200">{con.clientOrganization}</strong> • CIIRC Lead PI: {con.piName}
-                </div>
-                <div className="text-[11.5px] text-slate-400">
-                  Target Completion: {con.targetEndDate}
+                <div className="text-[12px] text-slate-500 space-y-0.5 pt-0.5">
+                  <div>Client: <strong className="text-slate-800 dark:text-slate-200">{con.clientOrganization}</strong> • CIIRC Lead PI: {con.piName}</div>
+                  <div>Target Completion: {con.targetEndDate}</div>
+                  <div className="text-[11px] text-[#0066cc] dark:text-sky-400 font-medium">
+                    Policy Split: Institute {con.revenueSharePercent?.institute ?? 30}% • Dept {con.revenueSharePercent?.department ?? 20}% • PI Team {con.revenueSharePercent?.piTeam ?? 50}%
+                  </div>
                 </div>
               </div>
 
@@ -299,7 +308,9 @@ export function PartnershipsView() {
                 <div className="text-[18px] font-bold text-[#0066cc] dark:text-sky-400">
                   {formatCurrency(con.budgetINR)}
                 </div>
-                <span className="text-[10.5px] text-emerald-600 font-medium">Institutional Overhead 20%</span>
+                <div className="text-[10.5px] font-medium text-emerald-600">
+                  Settlement: {con.settlementStatus || "Milestone Review"}
+                </div>
               </div>
             </div>
           ))}
@@ -397,6 +408,90 @@ export function PartnershipsView() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* TAB 5: CONFLICT OF INTEREST (COI) DISCLOSURES */}
+      {/* ========================================== */}
+      {activeTab === "coi" && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[12.5px] flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-amber-800 dark:text-amber-300 block font-semibold">
+                Confidential Institutional Governance Register
+              </strong>
+              <p className="text-amber-700 dark:text-amber-400/90 text-[12px] mt-0.5">
+                Pursuant to CIIRC Research & Commercialization Ethics Policy, all faculty equity positions, board roles, and commercial affiliations are formally reviewed by the Ethics Committee.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {coiDisclosures.map((coi) => (
+              <div
+                key={coi.id}
+                className="p-5 rounded-2xl ref-card flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-purple-500/40 transition-all"
+              >
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[11px] font-bold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded">
+                      {coi.referenceNumber}
+                    </span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      Type: {coi.potentialConflictType}
+                    </span>
+                    <span
+                      className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        coi.reviewStatus === "Resolved"
+                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                          : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      }`}
+                    >
+                      ● {coi.reviewStatus}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded">
+                      Restricted Access
+                    </span>
+                  </div>
+
+                  <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                    {coi.personName} — <span className="text-slate-500 font-normal">{coi.personRole}</span>
+                  </h3>
+
+                  <p className="text-[12px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {coi.description}
+                  </p>
+
+                  <div className="text-[12px] text-slate-500 flex items-center gap-4 flex-wrap">
+                    <span>Affiliated Org: <strong className="text-slate-800 dark:text-slate-200">{coi.relatedOrganization}</strong></span>
+                    <span>Disclosed: {coi.disclosureDate}</span>
+                  </div>
+
+                  {coi.resolutionDetails && (
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-[12px] text-slate-600 dark:text-slate-300 mt-1">
+                      <strong className="text-slate-800 dark:text-slate-200 block mb-0.5">
+                        Committee Resolution ({coi.reviewerName}):
+                      </strong>
+                      {coi.resolutionDetails}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => {
+                      toast("Declaration Dossier Verified", `Governance compliance verified for ${coi.personName}.`, "info");
+                    }}
+                    className="btn-secondary h-[33px] text-xs"
+                  >
+                    View Record
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

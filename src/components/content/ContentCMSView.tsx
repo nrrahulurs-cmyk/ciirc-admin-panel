@@ -28,7 +28,20 @@ import {
 } from "lucide-react";
 import { PublicPreviewModal } from "./PublicPreviewModal";
 import { useToast } from "../common/Toast";
-import { getCanonicalMetrics, getCanonicalPartners } from "@/lib/canonicalMetrics";
+import {
+  getCanonicalMetrics,
+  getCanonicalPartners,
+  getSanitizedPublicResearchers,
+  getSanitizedPublicDomains,
+  getSanitizedPublicProjects,
+  getSanitizedPublicPublications,
+  getSanitizedPublicPatents,
+  getSanitizedPublicFacilities,
+  getSanitizedPublicEquipment,
+  getSanitizedPublicServices,
+  getSanitizedPublicSIF,
+  getSanitizedPublicTimeline,
+} from "@/lib/canonicalMetrics";
 
 export function ContentCMSView() {
   const { toast } = useToast();
@@ -98,12 +111,20 @@ Key highlights:
   const [workflowStatus, setWorkflowStatus] = useState<"Draft" | "Review" | "Approved" | "Scheduled" | "Published">("Review");
 
   // API Explorer states
-  const [selectedApiEndpoint, setSelectedApiEndpoint] = useState<
-    "/api/v1/public/metrics" | "/api/v1/public/partners" | "/api/v1/public/researchers" | "/api/v1/public/domains" | "/api/v1/public/projects"
-  >("/api/v1/public/metrics");
+  const [selectedApiEndpoint, setSelectedApiEndpoint] = useState<string>("/api/v1/public/metrics");
 
   const canonical = getCanonicalMetrics();
   const canonicalPartners = getCanonicalPartners();
+  const publicResearchers = getSanitizedPublicResearchers();
+  const publicDomains = getSanitizedPublicDomains();
+  const publicProjects = getSanitizedPublicProjects();
+  const publicPublications = getSanitizedPublicPublications();
+  const publicPatents = getSanitizedPublicPatents();
+  const publicFacilities = getSanitizedPublicFacilities();
+  const publicEquipment = getSanitizedPublicEquipment();
+  const publicServices = getSanitizedPublicServices();
+  const publicSIF = getSanitizedPublicSIF();
+  const publicTimeline = getSanitizedPublicTimeline();
 
   const apiResponses: Record<string, any> = {
     "/api/v1/public/metrics": {
@@ -121,73 +142,63 @@ Key highlights:
     "/api/v1/public/researchers": {
       status: 200,
       timestamp: new Date().toISOString(),
-      pagination: { total: canonical.researchersCount, limit: 10 },
-      data: [
-        {
-          id: "res-01",
-          name: "Prof. Rajesh Mehta",
-          title: "Senior Professor & Lab Director",
-          department: "Biomechatronics & Neural Engineering",
-          researchAreas: ["Humanoid Robotics & Prosthetics", "Bio-Mechanical CAD"],
-          hIndex: 26,
-          citations: 1420,
-          publicProfileUrl: "https://ciirc.edu.in/faculty/rajesh-mehta",
-          publicVisibility: true,
-          classification: "PUBLIC",
-          // Internal budgets & private notes are strictly excluded
-        },
-        {
-          id: "res-02",
-          name: "Dr. Arvind Sharma",
-          title: "Associate Professor & Lead Scientist",
-          department: "Cybernetics & Autonomous Systems",
-          researchAreas: ["Multi-Agent Swarms", "GPS-Denied SLAM"],
-          hIndex: 18,
-          citations: 890,
-          publicProfileUrl: "https://ciirc.edu.in/faculty/arvind-sharma",
-          publicVisibility: true,
-          classification: "PUBLIC",
-        },
-      ],
+      count: publicResearchers.length,
+      data: publicResearchers,
     },
     "/api/v1/public/domains": {
       status: 200,
-      timestamp: "2026-09-13T08:50:00Z",
-      data: [
-        {
-          code: "VISTA-ROB",
-          slug: "autonomous-systems-cybernetics",
-          name: "Autonomous Systems & Cybernetics",
-          focusAreas: ["Multi-Agent Swarms", "GPS-Denied SLAM", "Field Robotics"],
-          activeProjectsCount: 14,
-          publicationsCount: 68,
-        },
-        {
-          code: "VISTA-BIO",
-          slug: "biomechatronics-neural-engineering",
-          name: "Biomechatronics & Neural Engineering",
-          focusAreas: ["Powered Exoskeletons", "Surface EMG Neural Decoding"],
-          activeProjectsCount: 9,
-          publicationsCount: 54,
-        },
-      ],
+      timestamp: new Date().toISOString(),
+      count: publicDomains.length,
+      data: publicDomains,
     },
     "/api/v1/public/projects": {
       status: 200,
-      timestamp: "2026-09-13T08:50:00Z",
-      data: [
-        {
-          code: "CIIRC-BIO-2025-08",
-          title: "Autonomous Bi-Pedal Exoskeleton for Neuromotor Rehabilitation",
-          pi: "Prof. Rajesh Mehta",
-          department: "Biomechatronics & Neural Engineering",
-          fundingAgency: "DST & ICMR",
-          status: "Active",
-          progress: 64,
-          publicVisibility: true,
-          // confidential grant financial allocation removed
-        },
-      ],
+      timestamp: new Date().toISOString(),
+      count: publicProjects.length,
+      data: publicProjects,
+    },
+    "/api/v1/public/publications": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicPublications.length,
+      data: publicPublications,
+    },
+    "/api/v1/public/patents": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicPatents.length,
+      data: publicPatents,
+    },
+    "/api/v1/public/facilities": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicFacilities.length,
+      data: publicFacilities,
+    },
+    "/api/v1/public/equipment": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicEquipment.length,
+      data: publicEquipment,
+    },
+    "/api/v1/public/services": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicServices.length,
+      data: publicServices,
+    },
+    "/api/v1/public/sif": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      facility: "Sophisticated Instrumentation Facility (SIF)",
+      count: publicSIF.length,
+      data: publicSIF,
+    },
+    "/api/v1/public/timeline": {
+      status: 200,
+      timestamp: new Date().toISOString(),
+      count: publicTimeline.length,
+      data: publicTimeline,
     },
   };
 
@@ -476,6 +487,29 @@ Key highlights:
             </div>
           </div>
 
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] text-slate-400">SIF Instrument Catalog</span>
+              <div className="text-[22px] font-bold text-[#0066cc] dark:text-sky-400 mt-1">100%</div>
+              <span className="text-[10.5px] text-emerald-600">10 of 10 SIF units mapped</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] text-slate-400">Testing Services Catalog</span>
+              <div className="text-[22px] font-bold text-emerald-600 mt-1">100%</div>
+              <span className="text-[10.5px] text-emerald-600">12 analytical services live</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] text-slate-400">IPR Publication Clearance</span>
+              <div className="text-[22px] font-bold text-purple-600 mt-1">100%</div>
+              <span className="text-[10.5px] text-purple-600">All public items verified</span>
+            </div>
+            <div className="p-4 rounded-xl ref-card">
+              <span className="text-[11px] text-slate-400">Timeline Chronicles</span>
+              <div className="text-[22px] font-bold text-amber-600 mt-1">100%</div>
+              <span className="text-[10.5px] text-amber-600">2014 – 2026 milestones</span>
+            </div>
+          </div>
+
           <div className="p-5 rounded-2xl ref-card space-y-3">
             <h3 className="font-bold text-[15px] text-slate-900 dark:text-white">
               Institutional Website Readiness Checklist
@@ -487,6 +521,13 @@ Key highlights:
                   <span className="font-medium">All 5 Core Research Domains Have Certified Descriptions & Hero Assets</span>
                 </div>
                 <span className="text-emerald-600 font-semibold text-xs">Ready</span>
+              </div>
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span className="font-medium">10 SIF Signature Instruments Configured with NABL Calibrations & Sample Guidelines</span>
+                </div>
+                <span className="text-emerald-600 font-semibold text-xs">Certified</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800">
                 <div className="flex items-center gap-2">
@@ -531,6 +572,13 @@ Key highlights:
                 <option value="/api/v1/public/researchers">/api/v1/public/researchers</option>
                 <option value="/api/v1/public/domains">/api/v1/public/domains</option>
                 <option value="/api/v1/public/projects">/api/v1/public/projects</option>
+                <option value="/api/v1/public/publications">/api/v1/public/publications</option>
+                <option value="/api/v1/public/patents">/api/v1/public/patents</option>
+                <option value="/api/v1/public/facilities">/api/v1/public/facilities</option>
+                <option value="/api/v1/public/equipment">/api/v1/public/equipment</option>
+                <option value="/api/v1/public/services">/api/v1/public/services</option>
+                <option value="/api/v1/public/sif">/api/v1/public/sif</option>
+                <option value="/api/v1/public/timeline">/api/v1/public/timeline</option>
               </select>
 
               <button

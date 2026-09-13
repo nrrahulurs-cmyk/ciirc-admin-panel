@@ -20,8 +20,56 @@ import { useToast } from "../common/Toast";
 
 export function WorkflowApprovalsView() {
   const { toast } = useToast();
-  const [items, setItems] = useState<WorkflowApprovalItem[]>(workflowApprovalQueue);
+  const [items, setItems] = useState<WorkflowApprovalItem[]>([
+    ...workflowApprovalQueue,
+    {
+      id: "wf-extra-01",
+      title: "IPR Invention Disclosure: Adaptive Neuromotor Exoskeleton Control",
+      entityType: "Patent Filing",
+      submittedBy: "Dr. Arvind Sharma",
+      submittedByRole: "Associate Professor",
+      stage: "Approval",
+      assignedReviewer: "Dean of R&D",
+      submittedAt: "12 Sep 2026",
+      lastUpdated: "13 Sep 2026",
+      commentsCount: 3,
+      urgency: "Urgent",
+      status: "Pending",
+      summary: "Invention disclosure submitted for Indian Patent filing with clinical trial validation data from AIIMS cohort.",
+    },
+    {
+      id: "wf-extra-02",
+      title: "Sponsored Project Utilization Certificate: DST Cyber-Physical Systems",
+      entityType: "Research Project",
+      submittedBy: "Prof. Rajesh Mehta",
+      submittedByRole: "Director & PI",
+      stage: "Review",
+      assignedReviewer: "Internal Audit Officer",
+      submittedAt: "11 Sep 2026",
+      lastUpdated: "12 Sep 2026",
+      commentsCount: 2,
+      urgency: "Normal",
+      status: "Pending",
+      summary: "Statement of account and expenditure vouchers for FY25-26 grant cycle compliance.",
+    },
+    {
+      id: "wf-extra-03",
+      title: "Industry Testing Service Quotation: Bosch Hydraulic Seal Analysis",
+      entityType: "Research Project",
+      submittedBy: "Dr. Kavitha Sundaram",
+      submittedByRole: "SIF Coordinator",
+      stage: "Approval",
+      assignedReviewer: "Finance Desk",
+      submittedAt: "13 Sep 2026",
+      lastUpdated: "13 Sep 2026",
+      commentsCount: 1,
+      urgency: "Urgent",
+      status: "Pending",
+      summary: "External commercial quotation of ₹5,000 generated for failure characterization on TGA & FTIR.",
+    },
+  ]);
   const [stageFilter, setStageFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
 
   const handleApprove = (id: string, title: string) => {
     setItems((prev) =>
@@ -50,9 +98,20 @@ export function WorkflowApprovalsView() {
     toast("Submission Rejected", `Record marked as non-compliant: "${title}".`, "error");
   };
 
-  const filtered = items.filter(
-    (item) => stageFilter === "All" || item.stage === stageFilter
-  );
+  const handleDelegate = (id: string, title: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, assignedReviewer: "Expert Committee Panel" } : item
+      )
+    );
+    toast("Item Delegated", `"${title}" escalated to Expert Review Panel.`, "info");
+  };
+
+  const filtered = items.filter((item) => {
+    const matchStage = stageFilter === "All" || item.stage === stageFilter;
+    const matchType = typeFilter === "All" || item.entityType === typeFilter;
+    return matchStage && matchType;
+  });
 
   const stages = [
     { name: "Draft", count: 2 },
@@ -113,24 +172,31 @@ export function WorkflowApprovalsView() {
 
       {/* Approvals Queue */}
       <div className="space-y-3 pt-1">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <span>Pending Clearance Queue</span>
-            {stageFilter !== "All" && (
-              <span className="text-[12px] font-normal text-slate-500">
-                (Filtered by {stageFilter})
-              </span>
-            )}
-          </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">
+              Pending Clearance Queue
+            </h2>
+            <span className="text-[12px] font-normal text-slate-500">
+              ({filtered.length} items)
+            </span>
+          </div>
 
-          {stageFilter !== "All" && (
-            <button
-              onClick={() => setStageFilter("All")}
-              className="text-[12px] text-[#0066cc] dark:text-sky-400 font-medium hover:underline"
-            >
-              Clear filter
-            </button>
-          )}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {["All", "Patent Filing", "Research Project", "Publication", "MOU", "News Article"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                  typeFilter === type
+                    ? "bg-[#0066cc] text-white"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -201,6 +267,12 @@ export function WorkflowApprovalsView() {
                   </span>
                 ) : (
                   <>
+                    <button
+                      onClick={() => handleDelegate(item.id, item.title)}
+                      className="btn-secondary h-[32px] px-3 text-[12px] text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                    >
+                      Delegate
+                    </button>
                     <button
                       onClick={() => handleRequestChanges(item.id, item.title)}
                       className="btn-secondary h-[32px] px-3 text-[12px]"

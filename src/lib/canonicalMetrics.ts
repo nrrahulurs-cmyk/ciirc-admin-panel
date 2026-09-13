@@ -6,13 +6,34 @@ import {
   eventsList,
   facilitiesList,
   equipmentList,
+  serviceCatalogueList,
   partnerOrgsList,
   institutionalMOUsList,
   consultancyProjectsList,
   startupsList,
   researchDomainsList,
+  sifInstrumentsList,
+  sampleCharacterizationRequestsList,
+  iprRecordsList,
+  technologyTransferList,
+  institutionalAwardsList,
+  institutionalTimelineList,
+  canonicalImpactMetricsList,
 } from "@/data/mockData";
-import { PartnerOrg, Researcher, Project, ResearchDomain, Publication } from "@/types";
+import {
+  PartnerOrg,
+  Researcher,
+  Project,
+  ResearchDomain,
+  Publication,
+  Patent,
+  Facility,
+  Equipment,
+  ServiceCatalogueItem,
+  SIFInstrument,
+  InstitutionalTimelineEvent,
+  CanonicalImpactMetric,
+} from "@/types";
 
 export interface CanonicalInstitutionalMetrics {
   researchersCount: number;
@@ -22,11 +43,17 @@ export interface CanonicalInstitutionalMetrics {
   upcomingEventsCount: number;
   facilitiesCount: number;
   equipmentCount: number;
+  sifInstrumentsCount: number;
+  sampleRequestsCount: number;
+  iprDisclosuresCount: number;
+  technologyTransfersCount: number;
+  institutionalAwardsCount: number;
   canonicalPartnersCount: number;
   activeMousCount: number;
   consultanciesCount: number;
   startupsCount: number;
   domainsCount: number;
+  timelineEventsCount: number;
   totalGrantsValueINR: number;
   totalGrantsFormatted: string;
   dataQualityScore: number;
@@ -61,14 +88,20 @@ export function getCanonicalMetrics(): CanonicalInstitutionalMetrics {
     upcomingEventsCount: eventsList.filter((e) => e.status === "Upcoming").length || eventsList.length,
     facilitiesCount: facilitiesList.length,
     equipmentCount: equipmentList.length,
+    sifInstrumentsCount: sifInstrumentsList.length,
+    sampleRequestsCount: sampleCharacterizationRequestsList.length,
+    iprDisclosuresCount: iprRecordsList.length,
+    technologyTransfersCount: technologyTransferList.length,
+    institutionalAwardsCount: institutionalAwardsList.length,
     canonicalPartnersCount: partnerOrgsList.length,
     activeMousCount: institutionalMOUsList.filter((m) => m.status === "Active" || m.status === "Under Renewal").length,
     consultanciesCount: consultancyProjectsList.length,
     startupsCount: startupsList.length,
     domainsCount: researchDomainsList.length,
+    timelineEventsCount: institutionalTimelineList.length,
     totalGrantsValueINR: totalGrantsINR,
     totalGrantsFormatted: formatCrores(totalGrantsINR),
-    dataQualityScore: 94,
+    dataQualityScore: 96,
   };
 }
 
@@ -89,7 +122,6 @@ export function getCanonicalPartners(): PartnerOrg[] {
   for (const mou of institutionalMOUsList) {
     if (mou.partnerId && map.has(mou.partnerId)) {
       const existing = map.get(mou.partnerId)!;
-      // Ensure relationship data is accurately reflected without creating duplicate records
       map.set(mou.partnerId, existing);
     }
   }
@@ -165,5 +197,135 @@ export function getSanitizedPublicProjects(): Partial<Project>[] {
       description: p.description,
       classification: "PUBLIC" as const,
       temporalStatus: "Current" as const,
+    }));
+}
+
+export function getSanitizedPublicPublications(): Partial<Publication>[] {
+  return publicationsList
+    .filter((pub) => pub.publicVisibility !== false)
+    .map((pub) => ({
+      id: pub.id,
+      title: pub.title,
+      authors: pub.authors,
+      journalOrConference: pub.journalOrConference,
+      year: pub.year,
+      publicationType: pub.publicationType,
+      doi: pub.doi,
+      indexing: pub.indexing,
+      abstract: pub.abstract,
+      status: pub.status,
+      iprClearanceStatus: pub.iprClearanceStatus || "Cleared",
+    }));
+}
+
+export function getSanitizedPublicPatents(): Partial<Patent>[] {
+  return patentsList
+    .filter((pat) => pat.publicVisibility !== false)
+    .map((pat) => ({
+      id: pat.id,
+      title: pat.title,
+      applicationNo: pat.applicationNo,
+      patentNo: pat.patentNo,
+      jurisdiction: pat.jurisdiction,
+      status: pat.status,
+      inventors: pat.inventors,
+      filingDate: pat.filingDate,
+      grantDate: pat.grantDate,
+      commercialStatus: pat.commercialStatus,
+    }));
+}
+
+export function getSanitizedPublicFacilities(): Partial<Facility>[] {
+  return facilitiesList
+    .filter((fac) => fac.publicVisibility !== false)
+    .map((fac) => ({
+      id: fac.id,
+      name: fac.name,
+      code: fac.code,
+      type: fac.type,
+      location: fac.location,
+      manager: fac.manager,
+      description: fac.description,
+      equipmentCount: fac.equipmentCount,
+      status: fac.status,
+    }));
+}
+
+export function getSanitizedPublicEquipment(): Partial<Equipment>[] {
+  return equipmentList
+    .filter((eq) => eq.publicVisibility !== false)
+    .map((eq) => ({
+      id: eq.id,
+      name: eq.name,
+      model: eq.model,
+      manufacturer: eq.manufacturer,
+      facilityName: eq.facilityName,
+      status: eq.status,
+      hourlyRateINR: eq.hourlyRateINR,
+      sopAvailable: eq.sopAvailable,
+    }));
+}
+
+export function getSanitizedPublicServices(): Partial<ServiceCatalogueItem>[] {
+  return serviceCatalogueList
+    .filter((srv) => srv.publicVisibility !== false)
+    .map((srv) => ({
+      id: srv.id,
+      serviceName: srv.serviceName,
+      code: srv.code,
+      category: srv.category,
+      facilityName: srv.facilityName,
+      turnaroundTimeDays: srv.turnaroundTimeDays,
+      sampleRequirements: srv.sampleRequirements,
+      externalIndustryPriceINR: srv.externalIndustryPriceINR,
+      internalPriceINR: srv.internalPriceINR,
+      status: srv.status,
+    }));
+}
+
+export function getSanitizedPublicSIF(): Partial<SIFInstrument>[] {
+  return sifInstrumentsList
+    .filter((sif) => sif.externalAccessEnabled !== false)
+    .map((sif) => ({
+      id: sif.id,
+      code: sif.code,
+      name: sif.name,
+      model: sif.model,
+      manufacturer: sif.manufacturer,
+      technicalSpecs: sif.technicalSpecs,
+      sampleRequirements: sif.sampleRequirements,
+      operatorName: sif.operatorName,
+      operatorEmail: sif.operatorEmail,
+      facilityName: sif.facilityName,
+      availabilityStatus: sif.availabilityStatus,
+      pricing: sif.pricing,
+    }));
+}
+
+export function getSanitizedPublicTimeline(): Partial<InstitutionalTimelineEvent>[] {
+  return institutionalTimelineList
+    .filter((tl) => tl.publicVisibility !== false)
+    .map((tl) => ({
+      id: tl.id,
+      year: tl.year,
+      date: tl.date,
+      title: tl.title,
+      category: tl.category,
+      description: tl.description,
+      importance: tl.importance,
+    }));
+}
+
+export function getSanitizedPublicImpactMetrics(): Partial<CanonicalImpactMetric>[] {
+  return canonicalImpactMetricsList
+    .filter((im) => im.publicVisibility !== false)
+    .map((im) => ({
+      id: im.id,
+      key: im.key,
+      label: im.label,
+      value: im.value,
+      unit: im.unit,
+      period: im.period,
+      verified: im.verified,
     }));
 }
