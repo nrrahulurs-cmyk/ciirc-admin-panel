@@ -45,6 +45,10 @@ function AppShellContent() {
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
+      if (params.get("intro") === "true" || params.get("playIntro") === "true") {
+        setShowIntro(true);
+        return;
+      }
       const skipIntro = params.get("skipIntro") === "true";
       const seenSession = sessionStorage.getItem("ciirc_intro_seen_session") === "true";
       if (skipIntro || seenSession) {

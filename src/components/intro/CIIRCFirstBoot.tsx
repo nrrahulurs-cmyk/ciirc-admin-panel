@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { CIIRC_VIEWBOX, CIIRC_LETTERS, CIIRC_FULL_PATH } from "./ciircVectors";
+import { introAudio } from "./ciircIntroAudio";
 
 interface CIIRCFirstBootProps {
   onComplete: () => void;
@@ -20,6 +22,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
   const [phase, setPhase] = useState<BootPhase>("empty");
   const [activeLetters, setActiveLetters] = useState<number[]>([]);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => introAudio.getMuted());
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Check user preference for reduced motion
@@ -44,6 +47,18 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
         clearTimeout(t);
       };
     }
+
+    // Play synchronized acoustic glass sound score
+    introAudio.play();
+
+    // Browser autoplay unlock listener on first user interaction
+    const handleFirstGesture = () => {
+      introAudio.play();
+      window.removeEventListener("pointerdown", handleFirstGesture);
+      window.removeEventListener("keydown", handleFirstGesture);
+    };
+    window.addEventListener("pointerdown", handleFirstGesture, { once: true });
+    window.addEventListener("keydown", handleFirstGesture, { once: true });
 
     // Phase 1 -> 2: Sequential materialization of c - i - i - r - c (0.3s - 1.2s)
     const delays = [320, 500, 680, 860, 1040];
@@ -70,6 +85,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       // Unmount overlay after dissolve transition completes (2.6s total)
       setTimeout(() => {
         setPhase("complete");
+        introAudio.stop();
         onComplete();
       }, 500);
     }, 2100);
@@ -79,6 +95,9 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
       clearTimeout(tSettling);
       clearTimeout(tSpecular);
       clearTimeout(tDissolve);
+      window.removeEventListener("pointerdown", handleFirstGesture);
+      window.removeEventListener("keydown", handleFirstGesture);
+      introAudio.stop();
     };
   }, [prefersReducedMotion, onComplete]);
 
@@ -90,6 +109,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
         try {
           sessionStorage.setItem("ciirc_intro_seen_session", "true");
         } catch {}
+        introAudio.stop();
         setPhase("complete");
         onComplete();
       }
@@ -102,6 +122,7 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
     try {
       sessionStorage.setItem("ciirc_intro_seen_session", "true");
     } catch {}
+    introAudio.stop();
     setPhase("complete");
     onComplete();
   };
@@ -125,6 +146,49 @@ export function CIIRCFirstBoot({ onComplete, isDark }: CIIRCFirstBootProps) {
           : "radial-gradient(ellipse 135% 100% at 50% 38%, #ffffff 0%, #f6f9fd 48%, #e7f0fa 100%)",
       }}
     >
+      {/* Audio Control & Subtle Skip Indicator (Top Right) */}
+      <div className="absolute top-6 right-6 z-50 flex items-center gap-2.5 pointer-events-auto">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            const muted = introAudio.toggleMuted();
+            setIsMuted(muted);
+            if (!muted) {
+              introAudio.play();
+            }
+          }}
+          className={`px-3 py-1.5 rounded-full text-[11.5px] font-medium backdrop-blur-md transition-all flex items-center gap-1.5 border shadow-sm ${
+            isDark
+              ? "bg-slate-900/60 border-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-800/80"
+              : "bg-white/70 border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-white/90"
+          }`}
+          title={isMuted ? "Unmute Intro Audio" : "Mute Intro Audio"}
+        >
+          {isMuted ? (
+            <>
+              <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+              <span>Sound Off</span>
+            </>
+          ) : (
+            <>
+              <Volume2 className="w-3.5 h-3.5 text-[#0066cc] dark:text-sky-400 animate-pulse" />
+              <span>Sound On</span>
+            </>
+          )}
+        </button>
+
+        <span
+          className={`text-[11px] font-medium px-2.5 py-1 rounded-full backdrop-blur-md border ${
+            isDark
+              ? "bg-slate-900/40 border-slate-800/50 text-slate-400"
+              : "bg-white/50 border-slate-200/60 text-slate-500"
+          }`}
+        >
+          Click / Space to skip
+        </span>
+      </div>
+
       {/* 1. Atmospheric Volumetric Caustic Lighting (Generous Negative Space) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {/* Soft Cyan Atmospheric Caustic Pool */}
