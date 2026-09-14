@@ -141,7 +141,7 @@ export function AuthLoginView({ onLoginSuccess, isDark = false }: AuthLoginViewP
                 Institutional Management & Research Console
               </h1>
               <p className="text-[12.5px] leading-relaxed text-slate-600 dark:text-slate-400 mt-2">
-                Authoritative internal digital operating system for the Centre for Intelligent and Interactive Robotics and Cybernetics.
+                Authoritative internal digital operating system for the Centre for Incubation, Innovation, Research and Consultancy (CIIRC).
               </p>
             </div>
 

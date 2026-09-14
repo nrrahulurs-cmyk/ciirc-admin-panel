@@ -53,7 +53,7 @@ export function ContentCMSView() {
   const [pages, setPages] = useState([
     {
       id: "pg-01",
-      title: "Centre for Intelligent Robotics: Overview & Mission",
+      title: "Centre for Incubation, Innovation, Research and Consultancy: Overview & Mission",
       slug: "/about/mission",
       author: "Admin (Rahul Urs)",
       status: "Published",
@@ -130,7 +130,7 @@ Key highlights:
     "/api/v1/public/metrics": {
       status: 200,
       timestamp: new Date().toISOString(),
-      institution: "Centre for Intelligent and Interactive Robotics and Cybernetics (CIIRC)",
+      institution: "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)",
       data: canonical,
     },
     "/api/v1/public/partners": {

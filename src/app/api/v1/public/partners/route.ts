@@ -7,6 +7,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
+      institution: "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)",
       count: partners.length,
       data: partners,
     });

@@ -27,6 +27,7 @@ import {
 import { Project, ProjectHealthStatus } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "../common/Toast";
+import { projectReportsList } from "@/data/mockData";
 
 interface ProjectDetailDrawerProps {
   project: Project | null;
@@ -524,11 +525,12 @@ export function ProjectDetailDrawer({
 
           {activeTab === "governance" && (
             <div className="space-y-4">
+              {/* Public Clearance */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-slate-900 dark:text-white">Public Website Clearance</span>
                   <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-600">
-                    Approved for ciirc.edu.in
+                    Approved for ciirc.jyothyit.ac.in
                   </span>
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[12px]">
@@ -536,6 +538,73 @@ export function ProjectDetailDrawer({
                 </p>
               </div>
 
+              {/* Statutory Project Reports (APR, Midterm, Closure) */}
+              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-[13px]">
+                    <FileText className="w-4 h-4 text-[#0066cc] dark:text-sky-400" />
+                    <span>Project Governance & Statutory Progress Reports</span>
+                  </h4>
+                  <button
+                    onClick={() => {
+                      toast("Draft Report Initiated", "Created draft template for next reporting period.", "info");
+                    }}
+                    className="text-[11px] font-semibold text-[#0066cc] dark:text-sky-400 hover:underline"
+                  >
+                    + Submit New Report
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {(() => {
+                    const reports = projectReportsList.filter((r) => r.projectId === project.id);
+                    if (reports.length === 0) {
+                      return (
+                        <div className="p-3 text-center text-slate-400 text-xs border border-dashed rounded-lg border-slate-200 dark:border-slate-800">
+                          Next Annual Progress Report (APR) scheduled for Q4.
+                        </div>
+                      );
+                    }
+                    return reports.map((rep) => (
+                      <div key={rep.id} className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2 text-xs">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="font-semibold text-slate-900 dark:text-white">{rep.reportType}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-semibold ${
+                            rep.status === "Accepted & Cleared"
+                              ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                              : "bg-blue-500/10 text-blue-600 border border-blue-500/20"
+                          }`}>
+                            ● {rep.status}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-slate-500 dark:text-slate-400 text-[11px]">
+                          <div>Period: <strong className="text-slate-700 dark:text-slate-300">{rep.periodCovered}</strong></div>
+                          <div>Submitted: <strong className="text-slate-700 dark:text-slate-300">{formatDate(rep.submissionDate)}</strong></div>
+                        </div>
+                        {rep.reviewerName && (
+                          <div className="text-[11px] text-slate-600 dark:text-slate-400 bg-white/70 dark:bg-slate-800/50 p-2 rounded border border-slate-200/60 dark:border-slate-800/60 space-y-1">
+                            <div>Reviewer: <strong>{rep.reviewerName}</strong></div>
+                            {rep.approverComments && <div className="italic text-slate-500">"{rep.approverComments}"</div>}
+                          </div>
+                        )}
+                        {rep.signedUcUrl && (
+                          <div className="pt-1 flex justify-end">
+                            <button
+                              onClick={() => toast("Downloading Signed Report", `Retrieved ${rep.reportType} documentation.`, "info")}
+                              className="text-[#0066cc] dark:text-sky-400 hover:underline flex items-center gap-1 font-medium text-[11px]"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Download Endorsed Report</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {/* Linked Intellectual Property */}
               <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
                 <h4 className="font-semibold text-slate-800 dark:text-slate-200">Linked Intellectual Property</h4>
                 <div className="text-[12px] text-slate-600 dark:text-slate-400 space-y-1">

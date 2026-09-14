@@ -34,9 +34,9 @@ export function SystemSettingsView() {
 
   // Infrastructure form state
   const [siteName, setSiteName] = useState(
-    "CIIRC - Centre for Intelligent and Interactive Robotics and Cybernetics"
+    "CIIRC - Centre for Incubation, Innovation, Research and Consultancy"
   );
-  const [adminEmail, setAdminEmail] = useState("director.office@ciirc.edu.in");
+  const [adminEmail, setAdminEmail] = useState("director.office@ciirc.jyothyit.ac.in");
   const [smtpServer, setSmtpServer] = useState("smtp.resend.com");
   const [s3Bucket, setS3Bucket] = useState("ciirc-digital-assets-prod");
   const [sessionTimeout, setSessionTimeout] = useState("60");

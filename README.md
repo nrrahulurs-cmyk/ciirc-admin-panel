@@ -1,7 +1,7 @@
 # CIIRC Admin OS
 
-> **Centre for Intelligent and Interactive Robotics and Cybernetics**  
-> Enterprise Research & Institution Management Console
+> **Centre for Incubation, Innovation, Research and Consultancy (CIIRC)**  
+> Enterprise Research, Incubation, Infrastructure & Governance Console
 
 A production-grade, meticulously refined administrative operating system for managing research initiatives, faculty directories, publication indexes, grant portfolios, events, media assets, workflow approvals, and institutional analytics at CIIRC.
 
@@ -100,4 +100,4 @@ npm start
 
 ## Institutional Attribution
 
-Developed for the **Centre for Intelligent and Interactive Robotics and Cybernetics (CIIRC)**. All rights reserved.
+Developed for the **Centre for Incubation, Innovation, Research and Consultancy (CIIRC)**. All rights reserved.

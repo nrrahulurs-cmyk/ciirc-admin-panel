@@ -379,7 +379,7 @@ export function FormsView() {
                   Industry & Institutional Collaboration Portal
                 </h3>
                 <p className="text-[12px] text-slate-500 mt-0.5">
-                  Submit research proposals to the Centre for Intelligent Robotics.
+                  Submit research proposals to the Centre for Incubation, Innovation, Research and Consultancy (CIIRC).
                 </p>
               </div>
 

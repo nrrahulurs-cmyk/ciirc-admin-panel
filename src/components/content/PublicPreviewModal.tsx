@@ -209,7 +209,7 @@ export function PublicPreviewModal({
 
             {/* Public Footer */}
             <div className="p-4 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-400 text-center">
-              © 2026 Centre for Intelligent and Interactive Robotics and Cybernetics (CIIRC). All rights reserved.
+              © 2026 Centre for Incubation, Innovation, Research and Consultancy (CIIRC). All rights reserved.
             </div>
           </div>
         </div>

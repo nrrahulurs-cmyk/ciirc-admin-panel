@@ -332,3 +332,122 @@ test("Institutional Policy: Vault Regulatory Charters Completeness", async () =>
     assert.ok(pol.summary.length > 20, "Must include executive summary");
   }
 });
+
+test("Institutional Identity: Official CIIRC Name Enforcement Across All Layers", async () => {
+  const { conflictOfInterestDisclosuresList } = await import("../src/data/mockData");
+  const expectedOfficialName = "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)";
+
+  // Verify COI disclosure department affiliation
+  for (const coi of conflictOfInterestDisclosuresList) {
+    if (coi.personDepartment.includes("CIIRC") || coi.personDepartment.includes("Centre for")) {
+      assert.equal(
+        coi.personDepartment,
+        expectedOfficialName,
+        `COI disclosure department must strictly match official CIIRC name. Found: ${coi.personDepartment}`
+      );
+    }
+  }
+});
+
+test("First-Class Entities: Research Areas & Specializations Architecture", async () => {
+  const { researchAreasList } = await import("../src/data/mockData");
+  const { getSanitizedPublicResearchAreas } = await import("../src/lib/canonicalMetrics");
+
+  assert.ok(researchAreasList.length >= 4, "Must define first-class research areas");
+  for (const area of researchAreasList) {
+    assert.ok(area.code.startsWith("RA-"), "Research area code must start with RA-");
+    assert.ok(area.domainId.startsWith("dom-"), "Must map to a valid Research Domain");
+    assert.ok(area.keywords.length >= 2, "Must specify descriptive research keywords");
+    assert.ok(area.leadResearcherIds.length >= 1, "Must assign at least one lead researcher");
+    assert.equal(typeof area.publicationsCount, "number");
+    assert.equal(typeof area.activeProjectsCount, "number");
+  }
+
+  const sanitized = getSanitizedPublicResearchAreas();
+  assert.equal(sanitized.length, researchAreasList.filter((a) => a.publicVisibility !== false).length);
+});
+
+test("Funding Agency Directory & Extramural Grant Governance", async () => {
+  const { fundingAgenciesList } = await import("../src/data/mockData");
+  assert.ok(fundingAgenciesList.length >= 4, "Must maintain funding agency directory");
+
+  for (const fa of fundingAgenciesList) {
+    assert.ok(fa.name.length > 3, "Funding agency name must be defined");
+    assert.ok(["Government", "Industry", "International", "Institutional", "Internal"].includes(fa.type));
+    assert.ok(fa.contactEmail.includes("@"), "Contact email must be valid");
+    assert.ok(fa.website.startsWith("http"), "Agency website URL must be valid");
+    assert.ok(fa.totalSanctionedINR > 0, "Sanctioned grant sum must be positive");
+    assert.equal(fa.verifiedStatus, true, "Agencies in directory must be verified");
+  }
+});
+
+test("Technology Transfer Pipeline & TRL Readiness Validation", async () => {
+  const { technologiesList } = await import("../src/data/mockData");
+  const { getSanitizedPublicTechnologies } = await import("../src/lib/canonicalMetrics");
+
+  assert.ok(technologiesList.length >= 3, "Must track technology assets in transfer pipeline");
+  for (const tech of technologiesList) {
+    assert.ok(tech.trlLevel >= 1 && tech.trlLevel <= 9, "TRL level must be between 1 and 9");
+    assert.ok(tech.inventorIds.length >= 1, "Technology must attribute inventor researchers");
+    assert.ok(["Concept", "Simulation", "Benchtop", "Field Tested", "Commercial Ready"].includes(tech.prototypeStatus));
+    assert.ok(["Research", "Prototype", "Validation", "IP Protected", "Industry Interest", "Licensing", "Commercialized"].includes(tech.technologyTransferStatus));
+  }
+
+  const sanitized = getSanitizedPublicTechnologies();
+  assert.equal(sanitized.length, technologiesList.length);
+});
+
+test("Leadership & Governance: Institutional Profiles and Public Directory", async () => {
+  const { leadershipProfilesList } = await import("../src/data/mockData");
+  const { getSanitizedPublicLeadership } = await import("../src/lib/canonicalMetrics");
+
+  assert.ok(leadershipProfilesList.length >= 4, "Must define institutional leadership profiles");
+  for (const leader of leadershipProfilesList) {
+    assert.ok(leader.name.length > 0, "Leader name must be defined");
+    assert.ok(leader.email.endsWith("@ciirc.jyothyit.ac.in"), "Official leadership email must use institutional domain");
+    assert.ok(leader.education.length >= 1, "Must list formal credentials");
+    assert.ok(leader.experience.length >= 1, "Must list career track record");
+    assert.ok(leader.displayOrder > 0, "Display order must be a positive integer");
+  }
+
+  const sanitized = getSanitizedPublicLeadership();
+  assert.equal(sanitized[0].name, "Prof. Rajesh Mehta", "Director must be ranked first in display order");
+});
+
+test("CMS & News Engine: Content Lifecycle, Slugs, and Statutory Compliance Records", async () => {
+  const { cmsPagesList, newsAnnouncementsList, complianceRecordsList, projectReportsList } = await import("../src/data/mockData");
+  const { getSanitizedPublicCMSPages, getSanitizedPublicNews, getSanitizedPublicCompliance } = await import("../src/lib/canonicalMetrics");
+
+  // CMS Pages
+  assert.ok(cmsPagesList.length >= 4, "Must contain CMS pages");
+  for (const pg of cmsPagesList) {
+    assert.ok(pg.slug.startsWith("/"), "CMS page slug must start with /");
+    assert.ok(pg.seoTitle.includes("CIIRC"), "SEO title must mention CIIRC");
+    assert.ok(pg.version >= 1, "Version number must be at least 1");
+  }
+
+  // News & Announcements
+  assert.ok(newsAnnouncementsList.length >= 3, "Must contain news items");
+  const pinned = newsAnnouncementsList.filter((n) => n.isPinned);
+  assert.ok(pinned.length >= 1, "Must have at least one pinned announcement");
+
+  // Compliance Records
+  assert.ok(complianceRecordsList.length >= 3, "Must track statutory compliance certifications");
+  for (const c of complianceRecordsList) {
+    assert.ok(c.certificateNumber.length > 5, "Certificate number must be recorded");
+    assert.ok(c.validUntil > c.validFrom, "Validity expiration must follow inception");
+  }
+
+  // Formal Project Reports
+  assert.ok(projectReportsList.length >= 3, "Must track project governance reports");
+  for (const rep of projectReportsList) {
+    assert.ok(rep.projectId.startsWith("proj-"), "Report must link to a valid project");
+    assert.ok(rep.periodCovered.length > 0, "Reporting period must be specified");
+  }
+
+  // Public Sanitized Getters
+  assert.ok(getSanitizedPublicCMSPages().length >= 1);
+  assert.ok(getSanitizedPublicNews().length >= 1);
+  assert.ok(getSanitizedPublicCompliance().length >= 1);
+});
+

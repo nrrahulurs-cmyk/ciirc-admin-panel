@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
+      institution: "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)",
       pagination: {
         total: researchers.length,
         limit,

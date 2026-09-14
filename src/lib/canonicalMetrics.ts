@@ -19,6 +19,13 @@ import {
   institutionalAwardsList,
   institutionalTimelineList,
   canonicalImpactMetricsList,
+  researchAreasList,
+  technologiesList,
+  leadershipProfilesList,
+  cmsPagesList,
+  newsAnnouncementsList,
+  complianceRecordsList,
+  fundingAgenciesList,
 } from "@/data/mockData";
 import {
   PartnerOrg,
@@ -33,6 +40,13 @@ import {
   SIFInstrument,
   InstitutionalTimelineEvent,
   CanonicalImpactMetric,
+  ResearchArea,
+  Technology,
+  LeadershipProfile,
+  CMSPage,
+  NewsAnnouncement,
+  ComplianceRecord,
+  FundingAgency,
 } from "@/types";
 
 export interface CanonicalInstitutionalMetrics {
@@ -53,6 +67,13 @@ export interface CanonicalInstitutionalMetrics {
   consultanciesCount: number;
   startupsCount: number;
   domainsCount: number;
+  researchAreasCount: number;
+  technologiesCount: number;
+  leadershipCount: number;
+  cmsPagesCount: number;
+  newsCount: number;
+  complianceCount: number;
+  fundingAgenciesCount: number;
   timelineEventsCount: number;
   totalGrantsValueINR: number;
   totalGrantsFormatted: string;
@@ -98,6 +119,13 @@ export function getCanonicalMetrics(): CanonicalInstitutionalMetrics {
     consultanciesCount: consultancyProjectsList.length,
     startupsCount: startupsList.length,
     domainsCount: researchDomainsList.length,
+    researchAreasCount: researchAreasList.length,
+    technologiesCount: technologiesList.length,
+    leadershipCount: leadershipProfilesList.length,
+    cmsPagesCount: cmsPagesList.length,
+    newsCount: newsAnnouncementsList.length,
+    complianceCount: complianceRecordsList.length,
+    fundingAgenciesCount: fundingAgenciesList.length,
     timelineEventsCount: institutionalTimelineList.length,
     totalGrantsValueINR: totalGrantsINR,
     totalGrantsFormatted: formatCrores(totalGrantsINR),
@@ -329,3 +357,107 @@ export function getSanitizedPublicImpactMetrics(): Partial<CanonicalImpactMetric
       verified: im.verified,
     }));
 }
+
+export function getSanitizedPublicResearchAreas(): Partial<ResearchArea>[] {
+  return researchAreasList
+    .filter((ra) => ra.publicVisibility !== false)
+    .map((ra) => ({
+      id: ra.id,
+      code: ra.code,
+      name: ra.name,
+      domainId: ra.domainId,
+      domainName: ra.domainName,
+      description: ra.description,
+      keywords: ra.keywords,
+      publicationsCount: ra.publicationsCount,
+      activeProjectsCount: ra.activeProjectsCount,
+    }));
+}
+
+export function getSanitizedPublicLeadership(): Partial<LeadershipProfile>[] {
+  return leadershipProfilesList
+    .filter((lp) => lp.publicVisibility !== false)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((lp) => ({
+      id: lp.id,
+      name: lp.name,
+      role: lp.role,
+      designation: lp.designation,
+      qualification: lp.qualification,
+      email: lp.email,
+      photo: lp.photo,
+      biography: lp.biography,
+      education: lp.education,
+      experience: lp.experience,
+      achievements: lp.achievements,
+      researchPillars: lp.researchPillars,
+      awards: lp.awards,
+      displayOrder: lp.displayOrder,
+    }));
+}
+
+export function getSanitizedPublicCMSPages(): Partial<CMSPage>[] {
+  return cmsPagesList
+    .filter((pg) => pg.publicVisibility !== false && pg.status === "Published")
+    .map((pg) => ({
+      id: pg.id,
+      title: pg.title,
+      slug: pg.slug,
+      template: pg.template,
+      excerpt: pg.excerpt,
+      contentMarkdown: pg.contentMarkdown,
+      author: pg.author,
+      lastUpdated: pg.lastUpdated,
+      seoTitle: pg.seoTitle,
+      seoDescription: pg.seoDescription,
+      version: pg.version,
+    }));
+}
+
+export function getSanitizedPublicNews(): Partial<NewsAnnouncement>[] {
+  return newsAnnouncementsList
+    .filter((n) => n.publicVisibility !== false)
+    .map((n) => ({
+      id: n.id,
+      title: n.title,
+      slug: n.slug,
+      summary: n.summary,
+      content: n.content,
+      category: n.category,
+      publishedDate: n.publishedDate,
+      isPinned: n.isPinned,
+      tags: n.tags,
+      coverImage: n.coverImage,
+    }));
+}
+
+export function getSanitizedPublicTechnologies(): Partial<Technology>[] {
+  return technologiesList.map((t) => ({
+    id: t.id,
+    title: t.title,
+    slug: t.slug,
+    domainId: t.domainId,
+    trlLevel: t.trlLevel,
+    prototypeStatus: t.prototypeStatus,
+    licensingStatus: t.licensingStatus,
+    technologyTransferStatus: t.technologyTransferStatus,
+    industryInterest: t.industryInterest,
+  }));
+}
+
+export function getSanitizedPublicCompliance(): Partial<ComplianceRecord>[] {
+  return complianceRecordsList
+    .filter((c) => c.status === "Active")
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      regulatoryBody: c.regulatoryBody,
+      certificateNumber: c.certificateNumber,
+      validFrom: c.validFrom,
+      validUntil: c.validUntil,
+      status: c.status,
+      documentUrl: c.documentUrl,
+      remarks: c.remarks,
+    }));
+}
+

@@ -1,7 +1,7 @@
 {
   "name": "CIIRC Admin OS",
   "short_name": "CIIRC OS",
-  "description": "Centre for Intelligent and Interactive Robotics and Cybernetics Enterprise Admin Operating System",
+  "description": "Centre for Incubation, Innovation, Research and Consultancy Enterprise Admin Operating System",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#090d16",

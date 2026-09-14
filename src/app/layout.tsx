@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CIIRC Admin OS | Centre for Intelligent and Interactive Robotics and Cybernetics",
+  title: "CIIRC Admin OS | Centre for Incubation, Innovation, Research and Consultancy",
   description:
-    "Enterprise Admin Operating System for CIIRC's digital, research, faculty, content and event ecosystem.",
+    "Enterprise Admin Operating System for CIIRC (Centre for Incubation, Innovation, Research and Consultancy) research, innovation, incubation, infrastructure, and governance ecosystem.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

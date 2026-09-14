@@ -1029,3 +1029,178 @@ export interface NotificationItem {
   linkedEntityId?: string;
 }
 
+// ==========================================
+// 18. RESEARCH AREAS & FUNDING AGENCIES
+// ==========================================
+
+export interface ResearchArea {
+  id: string;
+  code: string;
+  name: string;
+  domainId: string;
+  domainName: string;
+  description: string;
+  keywords: string[];
+  leadResearcherIds: string[];
+  publicationsCount: number;
+  activeProjectsCount: number;
+  publicVisibility: boolean;
+}
+
+export interface FundingAgency {
+  id: string;
+  code: string;
+  name: string;
+  program: string;
+  type: "Government" | "Industry" | "International" | "Institutional" | "Internal";
+  contactPerson: string;
+  contactEmail: string;
+  website: string;
+  activeGrantsCount: number;
+  totalSanctionedINR: number;
+  verifiedStatus: boolean;
+}
+
+// ==========================================
+// 19. TECHNOLOGY ASSET & TRANSFER PIPELINE
+// ==========================================
+
+export interface Technology {
+  id: string;
+  title: string;
+  slug: string;
+  domainId: string;
+  projectId?: string;
+  patentId?: string;
+  inventorIds: string[];
+  trlLevel: number; // TRL 1 - 9
+  prototypeStatus: "Concept" | "Simulation" | "Benchtop" | "Field Tested" | "Commercial Ready";
+  industryInterest: string[];
+  licensingStatus: "Available" | "Under Negotiation" | "Exclusive Licensed" | "Non-Exclusive Licensed";
+  commercializationValueINR?: number;
+  technologyTransferStatus:
+    | "Research"
+    | "Prototype"
+    | "Validation"
+    | "IP Protected"
+    | "Industry Interest"
+    | "Licensing"
+    | "Commercialized";
+  documents: string[];
+}
+
+// ==========================================
+// 20. LEADERSHIP & GOVERNANCE PROFILES
+// ==========================================
+
+export interface LeadershipProfile {
+  id: string;
+  name: string;
+  role: string;
+  designation: string;
+  qualification: string;
+  email: string;
+  photo: string;
+  biography: string;
+  education: string[];
+  experience: string[];
+  achievements: string[];
+  researchPillars: string[];
+  awards: string[];
+  publicVisibility: boolean;
+  displayOrder: number;
+}
+
+// ==========================================
+// 21. CMS PAGES & NEWS ANNOUNCEMENTS
+// ==========================================
+
+export interface CMSPage {
+  id: string;
+  title: string;
+  slug: string;
+  template: "Standard" | "Hero-Split" | "Atlas" | "Policy";
+  excerpt: string;
+  contentMarkdown: string;
+  author: string;
+  status: "Draft" | "In Review" | "Approved" | "Scheduled" | "Published" | "Archived";
+  lastUpdated: string;
+  seoTitle: string;
+  seoDescription: string;
+  viewsCount: number;
+  publicVisibility: boolean;
+  version: number;
+  changeSummary?: string;
+}
+
+export interface NewsAnnouncement {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  category:
+    | "Research Breakthrough"
+    | "Grant Award"
+    | "MoU Signing"
+    | "Patent Granted"
+    | "Student Achievement"
+    | "Announcement";
+  publishedDate: string;
+  author: string;
+  isPinned: boolean;
+  publicVisibility: boolean;
+  tags: string[];
+  coverImage?: string;
+  relatedDomainId?: string;
+  relatedProjectId?: string;
+}
+
+// ==========================================
+// 22. COMPLIANCE RECORDS & STATUTORY AUDIT
+// ==========================================
+
+export interface ComplianceRecord {
+  id: string;
+  title: string;
+  regulatoryBody:
+    | "DSIR"
+    | "AICTE"
+    | "NBA"
+    | "NAAC"
+    | "NIRF"
+    | "Pollution Control Board"
+    | "Atomic Energy Regulatory Board (AERB)";
+  certificateNumber: string;
+  validFrom: string;
+  validUntil: string;
+  complianceOfficer: string;
+  status: "Active" | "Renewal Pending" | "Under Audit" | "Expired";
+  documentUrl?: string;
+  remarks?: string;
+}
+
+// ==========================================
+// 23. PROJECT GOVERNANCE & FORMAL REPORTS
+// ==========================================
+
+export interface ProjectReport {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  reportType:
+    | "Quarterly Milestone"
+    | "Annual Progress Report (APR)"
+    | "Mid-term Technical Review"
+    | "Final Project Completion & Closure Report";
+  submissionDate: string;
+  dueDate: string;
+  periodCovered: string;
+  status: "Draft" | "Submitted" | "Under Agency Review" | "Accepted & Cleared";
+  reviewerName?: string;
+  approverComments?: string;
+  signedUcUrl?: string;
+  verifiedBy?: string;
+  timestamp?: string;
+}
+
