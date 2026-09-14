@@ -165,6 +165,7 @@ export interface Project {
   healthReason?: string;
   progress: number;
   milestones: (ProjectMilestone | { name: string; date: string; completed: boolean })[];
+  financials?: ProjectFinancials;
   publicationsCount: number;
   lab: string;
   facilityId?: string;
@@ -213,12 +214,13 @@ export interface Publication {
   researchArea: string;
   domainId?: string;
   projectId?: string;
-  publicationType: "Journal" | "Conference" | "Book Chapter" | "Patent Spec" | "Technical Report";
+  publicationType: "Journal" | "Conference" | "Book" | "Book Chapter" | "Patent Spec" | "Technical Report";
   journalOrConference: string;
   year: number;
   status: "Published" | "In Press" | "Under Review" | "Draft";
   workflowStage?: PublicationWorkflowStage;
   iprClearanceStatus?: "Cleared" | "Pending IPR Review" | "Exempt" | "Flagged";
+  bookMetadata?: BookChapterMetadata;
   contributors?: {
     name: string;
     role: "PI" | "Co-PI" | "Researcher" | "Research Scholar" | "Student" | "RA" | "P-DRA" | "Technical Staff" | "External Collaborator";
@@ -847,3 +849,183 @@ export interface CanonicalImpactMetric {
   priority: number;
   lastUpdated: string;
 }
+
+// ==========================================
+// 11. FINANCIAL GOVERNANCE & UTILIZATION
+// ==========================================
+
+export interface BudgetHeadAllocation {
+  id: string;
+  category: "Equipment & Hardware" | "Manpower & Fellowships" | "Consumables & Chemicals" | "Travel & Fieldwork" | "Contingency" | "Institutional Overheads";
+  sanctionedAmountINR: number;
+  utilizedAmountINR: number;
+  committedAmountINR: number;
+  balanceAmountINR: number;
+  utilizationPercentage: number;
+}
+
+export interface GrantDisbursement {
+  id: string;
+  trancheNumber: number;
+  sanctionOrderNumber: string;
+  releaseDate: string;
+  amountINR: number;
+  financialYear: string;
+  bankRefNumber: string;
+  status: "Credited" | "Scheduled" | "Awaiting UC Clearance";
+}
+
+export interface UtilizationCertificate {
+  id: string;
+  ucNumber: string;
+  financialYear: string;
+  periodFrom: string;
+  periodTo: string;
+  sanctionedAmountINR: number;
+  interestEarnedINR: number;
+  totalAvailableINR: number;
+  expenditureIncurredINR: number;
+  unspentBalanceINR: number;
+  gfrFormType: "GFR 12-A" | "GFR 12-B" | "Custom Agency SoE";
+  statutoryAuditorStatus: "Draft" | "Verified by Auditor" | "Countersigned by Director" | "Submitted to Ministry" | "Accepted by Agency";
+  auditorName?: string;
+  auditorMembershipNo?: string;
+  certifiedDate?: string;
+  documentUrl?: string;
+}
+
+export interface ProjectFinancials {
+  projectId: string;
+  currency: string;
+  sanctionedTotalINR: number;
+  totalDisbursedINR: number;
+  totalUtilizedINR: number;
+  balanceINR: number;
+  overallBurnRate: number; // percentage 0-100
+  budgetHeads: BudgetHeadAllocation[];
+  disbursements: GrantDisbursement[];
+  utilizationCertificates: UtilizationCertificate[];
+}
+
+// ==========================================
+// 12. ETHICS & BIO-SAFETY PROTOCOLS (IEC / IBSC)
+// ==========================================
+
+export interface EthicsProtocol {
+  id: string;
+  protocolNumber: string; // e.g. "CIIRC/IEC/2025/11-B"
+  title: string;
+  committeeType: "IEC (Human Ethics)" | "IBSC (Bio-Safety)" | "IAEC (Animal Ethics)" | "Dual-Use / Cybernetic Safety";
+  piName: string;
+  piId?: string;
+  projectId?: string;
+  projectTitle?: string;
+  collaboratingInstitutions: string[]; // e.g. ["AIIMS New Delhi"]
+  studyType: "Clinical Trial Phase-2" | "Bio-Signal & EMG Collection" | "Recombinant DNA" | "Human Factors / Exoskeleton";
+  ctriNumber?: string; // Clinical Trials Registry - India ID
+  submissionDate: string;
+  approvalDate?: string;
+  validUntil?: string;
+  reviewStatus: "Draft" | "Under Review" | "Modifications Requested" | "Approved" | "Active Monitoring" | "Completed" | "Suspended";
+  riskTier: "Minimal Risk" | "Low Risk" | "Moderate Risk" | "High / Invasive Risk";
+  informedConsentAudit: "Verified" | "Pending Audit" | "Exempt";
+  adverseEventsReported: number;
+  documents: string[];
+}
+
+// ==========================================
+// 13. RESEARCH DATA MANAGEMENT & DOCUMENT RETENTION
+// ==========================================
+
+export interface DataRetentionRecord {
+  id: string;
+  recordCode: string; // e.g. "RDM-2025-EXO-01"
+  datasetTitle: string;
+  projectId: string;
+  projectCode: string;
+  piName: string;
+  dataSteward: string;
+  storageLocation: "On-Premises NAS Vault" | "Cold Glacier Archive" | "Secure Lab Server" | "Air-Gapped Encrypted Drive";
+  volumeGB: number;
+  dataClassification: DataClassification;
+  statutoryBasis: "DST Extramural Guidelines" | "ICMR Clinical Trial Rules" | "DRDO Defence Security Schedule" | "Institutional Patent Defense";
+  archivalDate: string;
+  mandatoryRetentionYears: number; // e.g. 7 or 10 years
+  destructionDueDate: string;
+  dispositionAction: "Retain Indefinitely" | "Review at Expiry" | "Secure Destruction Authorized";
+  retentionComplianceStatus: "Active Compliance" | "Archived" | "Pending Review" | "Under Legal Hold";
+  integrityHashSHA256: string;
+}
+
+// ==========================================
+// 14. RESEARCH INCENTIVE POINTS & HONORARIUMS
+// ==========================================
+
+export interface ResearchIncentiveRecord {
+  id: string;
+  facultyName: string;
+  facultyId: string;
+  department: string;
+  academicYear: string;
+  q1JournalPoints: number;
+  q2JournalPoints: number;
+  patentsGrantedPoints: number;
+  sponsoredGrantPoints: number;
+  consultancySharePoints: number;
+  totalPoints: number;
+  calculatedHonorariumINR: number;
+  disbursementStatus: "Calculated" | "HOD Verified" | "Dean R&D Cleared" | "Finance Disbursed";
+  disbursedDate?: string;
+}
+
+// ==========================================
+// 15. INSTITUTIONAL POLICY VAULT
+// ==========================================
+
+export interface InstitutionalPolicy {
+  id: string;
+  policyCode: string; // e.g. "CIIRC-POL-IPR-01"
+  title: string;
+  category: "Intellectual Property" | "Research Ethics" | "Consultancy & Revenue Share" | "SIF Usage & Surcharges" | "Data Retention & Compliance" | "Faculty Incentives";
+  version: string;
+  effectiveDate: string;
+  reviewDate: string;
+  authorizingBody: "Board of Governors" | "Academic & Research Council" | "Directorate";
+  status: "Active Policy" | "Under Revision" | "Superseded";
+  summary: string;
+  documentUrl: string;
+}
+
+// ==========================================
+// 16. BOOKS & BOOK CHAPTERS METADATA
+// ==========================================
+
+export interface BookChapterMetadata {
+  isbn: string;
+  publisher: string;
+  edition?: string;
+  editors?: string[];
+  bookTitle?: string;
+  chapterTitle?: string;
+  chapterNumber?: number;
+  pageRange?: string; // e.g. "145-182"
+  seriesName?: string;
+  scopusBookCitationIndexed?: boolean;
+}
+
+// ==========================================
+// 17. NOTIFICATIONS & ALERTS
+// ==========================================
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  category: "Grant" | "MOU" | "Calibration" | "IPR" | "Ethics" | "System";
+  urgency: "urgent" | "warning" | "info";
+  timestamp: string;
+  read: boolean;
+  linkedModule: ModuleId;
+  linkedEntityId?: string;
+}
+

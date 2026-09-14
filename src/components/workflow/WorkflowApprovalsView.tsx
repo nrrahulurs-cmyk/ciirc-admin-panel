@@ -13,15 +13,47 @@ import {
   Filter,
   FileCheck,
   ShieldCheck,
+  X,
 } from "lucide-react";
 import { WorkflowApprovalItem } from "@/types";
-import { workflowApprovalQueue } from "@/data/mockData";
+import { workflowApprovalQueue, ethicsProtocolsList } from "@/data/mockData";
+import { logAuditEntry } from "@/lib/auditLogger";
 import { useToast } from "../common/Toast";
 
 export function WorkflowApprovalsView() {
   const { toast } = useToast();
   const [items, setItems] = useState<WorkflowApprovalItem[]>([
     ...workflowApprovalQueue,
+    {
+      id: "wf-eth-01",
+      title: "Human Ethics Clearance: Clinical Evaluation of Powered Exoskeleton (AIIMS Cohort)",
+      entityType: "Research Project",
+      submittedBy: "Prof. Rajesh Mehta",
+      submittedByRole: "Director & Lead PI",
+      stage: "Approval",
+      assignedReviewer: "Institutional Ethics Committee (IEC) Chairman",
+      submittedAt: "10 Sep 2026",
+      lastUpdated: "13 Sep 2026",
+      commentsCount: 4,
+      urgency: "Urgent",
+      status: "Pending",
+      summary: "Protocol CIIRC/IEC/2025/08-EXO (CTRI/2025/08/045892) requires final Chairman countersignature with verified patient informed consent documents.",
+    },
+    {
+      id: "wf-uc-01",
+      title: "Grant Utilization Certificate (GFR 12-A): DST Biomechatronics FY25-26",
+      entityType: "Research Project",
+      submittedBy: "M/s Raman & Associates (Auditor)",
+      submittedByRole: "Statutory Auditor",
+      stage: "Approval",
+      assignedReviewer: "Finance Officer & Director",
+      submittedAt: "12 Sep 2026",
+      lastUpdated: "13 Sep 2026",
+      commentsCount: 2,
+      urgency: "Urgent",
+      status: "Pending",
+      summary: "GFR 12-A audited statement for ₹1.50 Crore grant release with statutory audit verification. Awaiting institutional countersignature.",
+    },
     {
       id: "wf-extra-01",
       title: "IPR Invention Disclosure: Adaptive Neuromotor Exoskeleton Control",
@@ -38,21 +70,6 @@ export function WorkflowApprovalsView() {
       summary: "Invention disclosure submitted for Indian Patent filing with clinical trial validation data from AIIMS cohort.",
     },
     {
-      id: "wf-extra-02",
-      title: "Sponsored Project Utilization Certificate: DST Cyber-Physical Systems",
-      entityType: "Research Project",
-      submittedBy: "Prof. Rajesh Mehta",
-      submittedByRole: "Director & PI",
-      stage: "Review",
-      assignedReviewer: "Internal Audit Officer",
-      submittedAt: "11 Sep 2026",
-      lastUpdated: "12 Sep 2026",
-      commentsCount: 2,
-      urgency: "Normal",
-      status: "Pending",
-      summary: "Statement of account and expenditure vouchers for FY25-26 grant cycle compliance.",
-    },
-    {
       id: "wf-extra-03",
       title: "Industry Testing Service Quotation: Bosch Hydraulic Seal Analysis",
       entityType: "Research Project",
@@ -63,7 +80,7 @@ export function WorkflowApprovalsView() {
       submittedAt: "13 Sep 2026",
       lastUpdated: "13 Sep 2026",
       commentsCount: 1,
-      urgency: "Urgent",
+      urgency: "Normal",
       status: "Pending",
       summary: "External commercial quotation of ₹5,000 generated for failure characterization on TGA & FTIR.",
     },
@@ -71,31 +88,78 @@ export function WorkflowApprovalsView() {
   const [stageFilter, setStageFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
 
-  const handleApprove = (id: string, title: string) => {
+  // Review Modal State
+  const [selectedItemForReview, setSelectedItemForReview] = useState<WorkflowApprovalItem | null>(null);
+  const [reviewRemarks, setReviewRemarks] = useState("");
+
+  const handleApprove = (id: string, title: string, customRemarks?: string) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, status: "Approved", stage: "Publish" } : item
       )
     );
-    toast("Item Approved", `"${title}" has cleared institutional governance.`, "success");
+
+    // Write to audit log
+    logAuditEntry({
+      userId: "usr-admin-01",
+      userName: "Rahul Urs (Super Admin)",
+      userRole: "Super Admin",
+      action: `Governance Clearance Approved: ${title}`,
+      entityType: "WorkflowApproval",
+      entityId: id,
+      newValue: { status: "Approved", remarks: customRemarks || "Cleared standard governance review." },
+      status: "Success",
+    });
+
+    toast("Item Approved & Cleared", `"${title}" has cleared institutional governance. Logged in audit trail.`, "success");
+    setSelectedItemForReview(null);
+    setReviewRemarks("");
   };
 
-  const handleRequestChanges = (id: string, title: string) => {
+  const handleRequestChanges = (id: string, title: string, customRemarks?: string) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, status: "Changes Requested" } : item
       )
     );
+
+    logAuditEntry({
+      userId: "usr-admin-01",
+      userName: "Rahul Urs (Super Admin)",
+      userRole: "Super Admin",
+      action: `Changes Requested on Submission: ${title}`,
+      entityType: "WorkflowApproval",
+      entityId: id,
+      newValue: { status: "Changes Requested", remarks: customRemarks || "Revision requested." },
+      status: "Success",
+    });
+
     toast("Changes Requested", `Feedback notification sent to author for "${title}".`, "warning");
+    setSelectedItemForReview(null);
+    setReviewRemarks("");
   };
 
-  const handleReject = (id: string, title: string) => {
+  const handleReject = (id: string, title: string, customRemarks?: string) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, status: "Rejected" } : item
       )
     );
+
+    logAuditEntry({
+      userId: "usr-admin-01",
+      userName: "Rahul Urs (Super Admin)",
+      userRole: "Super Admin",
+      action: `Submission Rejected: ${title}`,
+      entityType: "WorkflowApproval",
+      entityId: id,
+      newValue: { status: "Rejected", remarks: customRemarks || "Declined." },
+      status: "Denied",
+    });
+
     toast("Submission Rejected", `Record marked as non-compliant: "${title}".`, "error");
+    setSelectedItemForReview(null);
+    setReviewRemarks("");
   };
 
   const handleDelegate = (id: string, title: string) => {
@@ -269,28 +333,19 @@ export function WorkflowApprovalsView() {
                   <>
                     <button
                       onClick={() => handleDelegate(item.id, item.title)}
-                      className="btn-secondary h-[32px] px-3 text-[12px] text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                      className="btn-secondary h-[32px] px-2.5 text-[11.5px] text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30"
                     >
                       Delegate
                     </button>
                     <button
-                      onClick={() => handleRequestChanges(item.id, item.title)}
-                      className="btn-secondary h-[32px] px-3 text-[12px]"
+                      onClick={() => {
+                        setSelectedItemForReview(item);
+                        setReviewRemarks("");
+                      }}
+                      className="btn-primary h-[32px] px-3 text-[11.5px] flex items-center gap-1.5"
                     >
-                      Request Changes
-                    </button>
-                    <button
-                      onClick={() => handleReject(item.id, item.title)}
-                      className="btn-secondary h-[32px] px-3 text-[12px] text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleApprove(item.id, item.title)}
-                      className="btn-primary h-[32px] px-3.5 text-[12px] !bg-emerald-600 hover:!bg-emerald-700"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Approve</span>
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Review Dossier</span>
                     </button>
                   </>
                 )}
@@ -299,6 +354,94 @@ export function WorkflowApprovalsView() {
           ))}
         </div>
       </div>
+
+      {/* Interactive Clearance Action Modal */}
+      {selectedItemForReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col text-slate-900 dark:text-slate-100 overflow-hidden">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#edf2fe] text-[#0055b3] dark:bg-blue-950/60 dark:text-sky-300">
+                    {selectedItemForReview.entityType}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                    selectedItemForReview.urgency === "Urgent"
+                      ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                      : "bg-slate-100 text-slate-600 border-slate-200"
+                  }`}>
+                    {selectedItemForReview.urgency}
+                  </span>
+                </div>
+                <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-snug">
+                  {selectedItemForReview.title}
+                </h3>
+                <p className="text-[12px] text-slate-500 mt-0.5">
+                  Author: <strong className="text-slate-700 dark:text-slate-300">{selectedItemForReview.submittedBy}</strong> ({selectedItemForReview.submittedByRole})
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedItemForReview(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-[12.5px] max-h-[60vh] overflow-y-auto">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-850 border border-slate-200/80 dark:border-slate-800 space-y-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
+                  Submission Summary & Scope
+                </span>
+                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {selectedItemForReview.summary}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block font-semibold text-slate-800 dark:text-slate-200">
+                  Reviewer Statutory Notes & Caveats
+                </label>
+                <textarea
+                  rows={3}
+                  value={reviewRemarks}
+                  onChange={(e) => setReviewRemarks(e.target.value)}
+                  placeholder="Enter formal clearance observations, contingency requirements, or rejection rationale..."
+                  className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[12.5px] focus:outline-none focus:ring-1 focus:ring-[#0066cc]"
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/50 dark:border-blue-800/30 text-[11.5px] text-slate-600 dark:text-slate-400 space-y-1">
+                <div className="font-semibold text-[#0066cc] dark:text-sky-300">Statutory Audit Trail Record</div>
+                <div>Action will be cryptographically logged under institutional role <strong>Super Admin / Director</strong>.</div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/50 flex items-center justify-end gap-2 text-xs">
+              <button
+                onClick={() => handleReject(selectedItemForReview.id, selectedItemForReview.title, reviewRemarks)}
+                className="btn-secondary h-[34px] px-3 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 font-semibold"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => handleRequestChanges(selectedItemForReview.id, selectedItemForReview.title, reviewRemarks)}
+                className="btn-secondary h-[34px] px-3 font-semibold"
+              >
+                Request Author Fixes
+              </button>
+              <button
+                onClick={() => handleApprove(selectedItemForReview.id, selectedItemForReview.title, reviewRemarks)}
+                className="btn-primary h-[34px] px-4 font-semibold !bg-emerald-600 hover:!bg-emerald-700 flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Grant Clearance</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

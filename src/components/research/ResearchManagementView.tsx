@@ -127,10 +127,20 @@ export function ResearchManagementView({
       const matchSearch =
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.authors.some((a) => a.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        p.journalOrConference.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchSearch;
+        p.journalOrConference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.bookMetadata?.isbn && p.bookMetadata.isbn.includes(searchQuery)) ||
+        (p.bookMetadata?.publisher && p.bookMetadata.publisher.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchType = statusFilter === "All" || p.publicationType === statusFilter || p.iprClearanceStatus === statusFilter;
+      return matchSearch && matchType;
     });
-  }, [publications, searchQuery]);
+  }, [publications, searchQuery, statusFilter]);
+
+  const handleClearIPR = (id: string, title: string) => {
+    setPublications((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, iprClearanceStatus: "Cleared" as const } : p))
+    );
+    toast("IPR Clearance Approved", `"${title}" has been granted pre-publication clearance.`, "success");
+  };
 
   // Tab 5: Filtered Patents
   const filteredPatents = useMemo(() => {
@@ -338,6 +348,22 @@ export function ResearchManagementView({
         </div>
 
         <div className="flex items-center gap-2">
+          {activeTab === "publications" && (
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-[36px] px-3 text-[12px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none"
+            >
+              <option value="All">All Formats & Statuses</option>
+              <option value="Journal">Peer-Reviewed Journals</option>
+              <option value="Conference">Conferences & Proceedings</option>
+              <option value="Book">Authored / Edited Books</option>
+              <option value="Book Chapter">Book Chapters</option>
+              <option value="Cleared">IPR Cleared</option>
+              <option value="Pending IPR Review">Pending IPR Review</option>
+            </select>
+          )}
+
           {activeTab === "projects" && (
             <select
               value={statusFilter}
@@ -636,6 +662,28 @@ export function ResearchManagementView({
                   Authors: <strong className="text-slate-700 dark:text-slate-300">{pub.authors.join(", ")}</strong>
                 </p>
 
+                {/* Specialized Book / Book Chapter Schema Metadata */}
+                {pub.bookMetadata && (
+                  <div className="p-2.5 rounded-xl bg-slate-50/70 dark:bg-slate-850/80 border border-slate-200/60 dark:border-slate-800/60 text-[11.5px] space-y-1 mt-1.5">
+                    <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 flex-wrap">
+                      <span><strong>ISBN:</strong> <span className="font-mono text-slate-800 dark:text-slate-200">{pub.bookMetadata.isbn}</span></span>
+                      <span><strong>Publisher:</strong> {pub.bookMetadata.publisher}</span>
+                      {pub.bookMetadata.edition && <span><strong>Edition:</strong> {pub.bookMetadata.edition}</span>}
+                      {pub.bookMetadata.pageRange && <span><strong>Chapter Pages:</strong> {pub.bookMetadata.pageRange}</span>}
+                    </div>
+                    {pub.bookMetadata.bookTitle && pub.publicationType === "Book Chapter" && (
+                      <div className="text-slate-600 dark:text-slate-400">
+                        Book: <em>{pub.bookMetadata.bookTitle}</em>
+                      </div>
+                    )}
+                    {pub.bookMetadata.editors && pub.bookMetadata.editors.length > 0 && (
+                      <div className="text-[11px] text-slate-500">
+                        Volume Editors: <strong>{pub.bookMetadata.editors.join(", ")}</strong>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="text-[11.5px] font-mono text-[#0066cc] dark:text-sky-400 pt-0.5 flex items-center gap-2">
                   <span>DOI: {pub.doi}</span>
                   <span className="text-slate-400">• Citations: {pub.citations}</span>
@@ -643,6 +691,17 @@ export function ResearchManagementView({
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {pub.iprClearanceStatus === "Pending IPR Review" && (
+                  <button
+                    onClick={() => handleClearIPR(pub.id, pub.title)}
+                    className="btn-primary h-[33px] text-xs flex items-center gap-1.5 !bg-emerald-600 hover:!bg-emerald-700"
+                    title="Grant formal IPR clearance for publication release"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Approve IPR</span>
+                  </button>
+                )}
+
                 <a
                   href={`https://doi.org/${pub.doi}`}
                   target="_blank"

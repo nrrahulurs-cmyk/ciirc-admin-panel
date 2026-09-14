@@ -20,6 +20,9 @@ import {
   ShieldAlert,
   Layers,
   Sparkles,
+  Landmark,
+  Receipt,
+  ShieldCheck,
 } from "lucide-react";
 import { Project, ProjectHealthStatus } from "@/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -295,57 +298,229 @@ export function ProjectDetailDrawer({
             </div>
           )}
 
-          {activeTab === "financials" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
-                  <span className="text-[11px] text-slate-400 block font-medium">Sanctioned Grant</span>
-                  <div className="text-[20px] font-bold text-slate-900 dark:text-white mt-1">
-                    {formatCurrency(project.fundingAmount)}
+          {activeTab === "financials" && (() => {
+            const fin = project.financials || {
+              projectId: project.id,
+              currency: "INR",
+              sanctionedTotalINR: project.fundingAmount,
+              totalDisbursedINR: Math.round(project.fundingAmount * 0.8),
+              totalUtilizedINR: utilized,
+              balanceINR: balance,
+              overallBurnRate: utilizationPct,
+              budgetHeads: [
+                { id: "bh-def-1", category: "Equipment & Hardware" as const, sanctionedAmountINR: Math.round(project.fundingAmount * 0.6), utilizedAmountINR: Math.round(utilized * 0.7), committedAmountINR: 500000, balanceAmountINR: Math.round(project.fundingAmount * 0.6) - Math.round(utilized * 0.7) - 500000, utilizationPercentage: 85 },
+                { id: "bh-def-2", category: "Manpower & Fellowships" as const, sanctionedAmountINR: Math.round(project.fundingAmount * 0.25), utilizedAmountINR: Math.round(utilized * 0.2), committedAmountINR: 300000, balanceAmountINR: Math.round(project.fundingAmount * 0.25) - Math.round(utilized * 0.2) - 300000, utilizationPercentage: 62 },
+                { id: "bh-def-3", category: "Consumables & Chemicals" as const, sanctionedAmountINR: Math.round(project.fundingAmount * 0.1), utilizedAmountINR: Math.round(utilized * 0.08), committedAmountINR: 100000, balanceAmountINR: Math.round(project.fundingAmount * 0.1) - Math.round(utilized * 0.08) - 100000, utilizationPercentage: 54 },
+                { id: "bh-def-4", category: "Institutional Overheads" as const, sanctionedAmountINR: Math.round(project.fundingAmount * 0.05), utilizedAmountINR: Math.round(project.fundingAmount * 0.05), committedAmountINR: 0, balanceAmountINR: 0, utilizationPercentage: 100 },
+              ],
+              disbursements: [
+                { id: "disb-def-1", trancheNumber: 1, sanctionOrderNumber: `SO/${project.code}/T1`, releaseDate: project.startDate, amountINR: Math.round(project.fundingAmount * 0.5), financialYear: "FY 2025-26", bankRefNumber: "SBIN-TR-01", status: "Credited" as const },
+                { id: "disb-def-2", trancheNumber: 2, sanctionOrderNumber: `SO/${project.code}/T2`, releaseDate: "2026-04-10", amountINR: Math.round(project.fundingAmount * 0.3), financialYear: "FY 2026-27", bankRefNumber: "SBIN-TR-02", status: "Credited" as const },
+              ],
+              utilizationCertificates: [
+                {
+                  id: "uc-def-1",
+                  ucNumber: `CIIRC/UC/${project.code}/FY25-26`,
+                  financialYear: "FY 2025-26",
+                  periodFrom: project.startDate,
+                  periodTo: "2026-03-31",
+                  sanctionedAmountINR: Math.round(project.fundingAmount * 0.5),
+                  interestEarnedINR: 85000,
+                  totalAvailableINR: Math.round(project.fundingAmount * 0.5) + 85000,
+                  expenditureIncurredINR: Math.round(project.fundingAmount * 0.48),
+                  unspentBalanceINR: Math.round(project.fundingAmount * 0.02) + 85000,
+                  gfrFormType: "GFR 12-A" as const,
+                  statutoryAuditorStatus: "Accepted by Agency" as const,
+                  auditorName: "M/s Raman & Associates, Chartered Accountants",
+                  auditorMembershipNo: "CA-084920",
+                  certifiedDate: "2026-05-02",
+                  documentUrl: "/docs/uc-signed.pdf",
+                },
+              ],
+            };
+
+            return (
+              <div className="space-y-5">
+                {/* 3 KPI Summary Cards */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850">
+                    <span className="text-[11px] text-slate-400 block font-medium">Sanctioned Grant</span>
+                    <div className="text-[20px] font-bold text-slate-900 dark:text-white mt-1">
+                      {formatCurrency(fin.sanctionedTotalINR)}
+                    </div>
+                    <span className="text-[10.5px] text-slate-400">Total Sanction Order</span>
                   </div>
-                  <span className="text-[10.5px] text-slate-400">Total Approved Capital</span>
+
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850">
+                    <span className="text-[11px] text-slate-400 block font-medium">Total Utilized (Burn)</span>
+                    <div className="text-[20px] font-bold text-[#0066cc] dark:text-sky-400 mt-1">
+                      {formatCurrency(fin.totalUtilizedINR)}
+                    </div>
+                    <span className="text-[10.5px] text-slate-400">{fin.overallBurnRate}% Aggregate Utilization</span>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850">
+                    <span className="text-[11px] text-slate-400 block font-medium">Unspent Balance</span>
+                    <div className="text-[20px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                      {formatCurrency(fin.balanceINR)}
+                    </div>
+                    <span className="text-[10.5px] text-emerald-500">Awaiting FY 26-27 Tranche</span>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
-                  <span className="text-[11px] text-slate-400 block font-medium">Disbursed & Utilized</span>
-                  <div className="text-[20px] font-bold text-[#0066cc] dark:text-sky-400 mt-1">
-                    {formatCurrency(utilized)}
+                {/* Section 1: Budget Heads Allocation */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-[#0066cc] dark:text-sky-400" />
+                      <span>Itemized Budget Heads (GFR Guidelines)</span>
+                    </h4>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      {fin.budgetHeads.length} Budget Subheads
+                    </span>
                   </div>
-                  <span className="text-[10.5px] text-slate-400">{utilizationPct}% Burn Rate</span>
+
+                  <div className="space-y-3 pt-1">
+                    {fin.budgetHeads.map((head) => (
+                      <div key={head.id} className="p-3 rounded-lg bg-slate-50/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                        <div className="flex items-center justify-between text-[12.5px]">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{head.category}</span>
+                          <span className="font-mono text-slate-700 dark:text-slate-300">
+                            {formatCurrency(head.utilizedAmountINR)} / {formatCurrency(head.sanctionedAmountINR)} ({head.utilizationPercentage}%)
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              head.utilizationPercentage >= 90
+                                ? "bg-emerald-500"
+                                : head.utilizationPercentage >= 50
+                                ? "bg-[#0066cc]"
+                                : "bg-amber-500"
+                            }`}
+                            style={{ width: `${Math.min(head.utilizationPercentage, 100)}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-500">
+                          <span>Committed Encumbrance: {formatCurrency(head.committedAmountINR)}</span>
+                          <span>Available Head Balance: {formatCurrency(head.balanceAmountINR)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-850">
-                  <span className="text-[11px] text-slate-400 block font-medium">Grant Balance</span>
-                  <div className="text-[20px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                    {formatCurrency(balance)}
+                {/* Section 2: Tranche Disbursements */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Landmark className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>Grant Release Tranches</span>
+                    </h4>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      Disbursed: {formatCurrency(fin.totalDisbursedINR)}
+                    </span>
                   </div>
-                  <span className="text-[10.5px] text-emerald-500">Committed to FY 26-27</span>
+
+                  <div className="space-y-2 text-[12px]">
+                    {fin.disbursements.map((tranche) => (
+                      <div key={tranche.id} className="p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900 dark:text-white">Tranche #{tranche.trancheNumber}</span>
+                            <span className="font-mono text-[11px] text-slate-500">({tranche.sanctionOrderNumber})</span>
+                            <span className={`px-2 py-0.2 rounded text-[10px] font-semibold border ${
+                              tranche.status === "Credited"
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            }`}>
+                              {tranche.status}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            Released: {formatDate(tranche.releaseDate)} • Bank Ref: {tranche.bankRefNumber}
+                          </div>
+                        </div>
+                        <div className="font-bold text-[13px] text-slate-900 dark:text-white shrink-0">
+                          {formatCurrency(tranche.amountINR)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Section 3: Formal Utilization Certificates (GFR 12-A) */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Receipt className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Utilization Certificates (GFR 12-A Statutory Audit)</span>
+                    </h4>
+                    <button
+                      onClick={() => {
+                        toast("GFR 12-A Draft Generated", "Compiled new Statement of Expenditure for FY 2026-27.", "success");
+                      }}
+                      className="text-[11px] font-semibold text-[#0066cc] dark:text-sky-400 hover:underline"
+                    >
+                      + Draft New UC
+                    </button>
+                  </div>
+
+                  <div className="space-y-2.5 text-[12px]">
+                    {fin.utilizationCertificates.map((uc) => (
+                      <div key={uc.id} className="p-3 rounded-lg border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-slate-900 dark:text-white">{uc.ucNumber}</span>
+                            <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-[#0066cc] dark:text-sky-300 text-[10px] font-bold">
+                              {uc.gfrFormType}
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                            ● {uc.statutoryAuditorStatus}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11.5px] pt-1 text-slate-600 dark:text-slate-400">
+                          <div>
+                            <span className="text-[10.5px] text-slate-400 block">Period:</span>
+                            <span>{uc.financialYear}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10.5px] text-slate-400 block">Sanctioned:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(uc.sanctionedAmountINR)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10.5px] text-slate-400 block">Expended:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(uc.expenditureIncurredINR)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10.5px] text-slate-400 block">Unspent Balance:</span>
+                            <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(uc.unspentBalanceINR)}</span>
+                          </div>
+                        </div>
+
+                        {uc.auditorName && (
+                          <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
+                            <span>Auditor: <strong>{uc.auditorName}</strong> ({uc.auditorMembershipNo})</span>
+                            <button
+                              onClick={() => {
+                                toast("Downloading Signed GFR 12-A", `Retrieved ${uc.ucNumber} document.`, "info");
+                              }}
+                              className="text-[#0066cc] dark:text-sky-400 hover:underline flex items-center gap-1 font-medium"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Download PDF</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-200">Budget Heads Allocation</h4>
-                <div className="space-y-2 text-[12px] pt-1">
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                    <span>Non-Recurring Equipment & Fabrication Rigs</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">₹1.80 Crore (92% utilized)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                    <span>Research Fellowships (JRF/SRF/Postdoc Stipends)</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">₹65.0 Lakh (58% utilized)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                    <span>Consumables & Clinical Trial Protocols</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">₹28.5 Lakh (42% utilized)</span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                    <span>Institutional Overheads & Audit Reserves</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">₹11.5 Lakh (100% compliant)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {activeTab === "governance" && (
             <div className="space-y-4">

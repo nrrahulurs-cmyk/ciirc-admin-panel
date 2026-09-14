@@ -54,10 +54,18 @@ export function PartnershipsView() {
   const [iedcProjects, setIedcProjects] = useState<IEDCProject[]>(iedcProjectsList);
   const [coiDisclosures, setCoiDisclosures] = useState<ConflictOfInterestDisclosure[]>(conflictOfInterestDisclosuresList);
   const [incubationAgreements, setIncubationAgreements] = useState<IncubationAgreement[]>(incubationAgreementsList);
+  const [startupSubView, setStartupSubView] = useState<"companies" | "agreements">("companies");
 
   const [search, setSearch] = useState("");
 
   const expiringMous = mous.filter((m) => m.daysRemaining <= 90);
+
+  const handleGraduateAgreement = (id: string, name: string) => {
+    setIncubationAgreements((prev) =>
+      prev.map((agr) => (agr.id === id ? { ...agr, status: "Graduated" as const } : agr))
+    );
+    toast("Incubation Graduation Sign-Off", `"${name}" formally graduated to independent commercial entity.`, "success");
+  };
 
   const handleConvertIEDC = (id: string, title: string) => {
     setIedcProjects((prev) =>
@@ -317,48 +325,143 @@ export function PartnershipsView() {
         </div>
       )}
 
-      {/* TAB 3: INCUBATED STARTUPS */}
+      {/* TAB 3: INCUBATED STARTUPS & CONTRACTS */}
       {activeTab === "startups" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {startups.map((stu) => (
-            <div
-              key={stu.id}
-              className="p-5 rounded-2xl ref-card flex flex-col justify-between space-y-4 hover:border-[#0066cc]/40 transition-all"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/10 text-purple-600">
-                    {stu.stage}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-400">
-                    TRL {stu.trl}
-                  </span>
-                </div>
-
-                <h3 className="text-[16.5px] font-bold text-slate-900 dark:text-white">
-                  {stu.name}
-                </h3>
-
-                <div className="text-[12px] text-slate-600 dark:text-slate-400 space-y-1">
-                  <div>Founders: <strong className="text-slate-800 dark:text-slate-200">{stu.founderNames.join(" • ")}</strong></div>
-                  <div>Faculty Mentor: {stu.mentorFaculty}</div>
-                  <div>Cohort: {stu.incubationCohort}</div>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Funding Raised</span>
-                  <span className="font-bold text-emerald-600 text-[13px]">{formatCurrency(stu.fundingRaisedINR)}</span>
-                </div>
-                {stu.iedcOriginated && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
-                    ★ IEDC Spin-Off
-                  </span>
-                )}
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStartupSubView("companies")}
+                className={`px-3 py-1 rounded-lg text-[12px] font-medium transition-all ${
+                  startupSubView === "companies"
+                    ? "bg-[#0066cc] text-white font-semibold shadow-2xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                }`}
+              >
+                Deep-Tech Companies ({startups.length})
+              </button>
+              <button
+                onClick={() => setStartupSubView("agreements")}
+                className={`px-3 py-1 rounded-lg text-[12px] font-medium transition-all ${
+                  startupSubView === "agreements"
+                    ? "bg-[#0066cc] text-white font-semibold shadow-2xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                }`}
+              >
+                Incubation Agreements & Equity ({incubationAgreements.length})
+              </button>
             </div>
-          ))}
+            <span className="text-[11.5px] text-slate-400">CIIRC Incubation Foundation (Section 8)</span>
+          </div>
+
+          {startupSubView === "companies" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {startups.map((stu) => (
+                <div
+                  key={stu.id}
+                  className="p-5 rounded-2xl ref-card flex flex-col justify-between space-y-4 hover:border-[#0066cc]/40 transition-all"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-purple-500/10 text-purple-600">
+                        {stu.stage}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-400">
+                        TRL {stu.trl}
+                      </span>
+                    </div>
+
+                    <h3 className="text-[16.5px] font-bold text-slate-900 dark:text-white">
+                      {stu.name}
+                    </h3>
+
+                    <div className="text-[12px] text-slate-600 dark:text-slate-400 space-y-1">
+                      <div>Founders: <strong className="text-slate-800 dark:text-slate-200">{stu.founderNames.join(" • ")}</strong></div>
+                      <div>Faculty Mentor: {stu.mentorFaculty}</div>
+                      <div>Cohort: {stu.incubationCohort}</div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Funding Raised</span>
+                      <span className="font-bold text-emerald-600 text-[13px]">{formatCurrency(stu.fundingRaisedINR)}</span>
+                    </div>
+                    {stu.iedcOriginated && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
+                        ★ IEDC Spin-Off
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {incubationAgreements.map((agr) => (
+                <div
+                  key={agr.id}
+                  className="p-5 rounded-2xl ref-card flex flex-col lg:flex-row lg:items-center justify-between gap-5 hover:border-[#0066cc]/40 transition-all"
+                >
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-[#0066cc] dark:text-sky-300">
+                        {agr.agreementType}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border ${
+                        agr.status === "Graduated"
+                          ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
+                          : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                      }`}>
+                        ● {agr.status}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 text-[11px] font-bold">
+                        {agr.equityStakePercent}% Institutional Equity
+                      </span>
+                    </div>
+
+                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                      {agr.startupName}
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] text-slate-600 dark:text-slate-400">
+                      <div>Assigned Mentor: <strong className="text-slate-800 dark:text-slate-200">{agr.mentorshipAssigned}</strong></div>
+                      <div>Student Internship Seats: <strong>{agr.studentInternshipSeats} seats</strong></div>
+                      <div>Resource Quota: <em>{agr.resourceQuota}</em></div>
+                      <div>Facility Scope: {agr.facilityUsageScope}</div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11.5px] space-y-1">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300 block">Exit / Graduation Milestones:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {agr.exitMilestones.map((m, idx) => (
+                          <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px]">
+                            ✓ {m}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100 dark:border-slate-800">
+                    {agr.status !== "Graduated" ? (
+                      <button
+                        onClick={() => handleGraduateAgreement(agr.id, agr.startupName)}
+                        className="btn-primary h-[33px] px-3.5 text-xs flex items-center gap-1.5 !bg-purple-600 hover:!bg-purple-700"
+                      >
+                        <GraduationCap className="w-3.5 h-3.5" />
+                        <span>Sign Off Graduation</span>
+                      </button>
+                    ) : (
+                      <span className="px-3 py-1.5 rounded-xl text-xs font-semibold text-purple-600 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800">
+                        Graduated Alumni Venture
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
