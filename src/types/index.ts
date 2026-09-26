@@ -934,6 +934,56 @@ export interface EthicsProtocol {
 }
 
 // ==========================================
+// 12A. RESEARCH MISCONDUCT & GRIEVANCE REDRESSAL
+// ==========================================
+
+export interface ResearchMisconductCase {
+  id: string;
+  caseNumber: string;
+  complaintTitle: string;
+  reporterName: string;
+  respondentPerson: string;
+  respondentRole: string;
+  relatedProjectId?: string;
+  relatedProjectTitle?: string;
+  category:
+    | "Plagiarism"
+    | "Data Falsification"
+    | "Authorship Dispute"
+    | "Fabrication"
+    | "Financial Irregularity";
+  evidenceSummary: string;
+  investigationCommittee: string;
+  filingDate: string;
+  hearingDate?: string;
+  decision?: string;
+  resolutionDetails?: string;
+  status:
+    | "Under Preliminary Inquiry"
+    | "Formal Investigation"
+    | "Exonerated"
+    | "Sanction Imposed"
+    | "Closed";
+  restrictedAccess: boolean;
+}
+
+export interface ResearchGrievance {
+  id: string;
+  grievanceNumber: string;
+  requesterName: string;
+  requesterRole: string;
+  requesterDepartment: string;
+  issueDescription: string;
+  relatedDecision: string;
+  committeeName: string;
+  representationDate: string;
+  status: "Registered" | "Hearing Scheduled" | "Under Review" | "Resolved" | "Dismissed";
+  resolutionDetails?: string;
+  closureDate?: string;
+  restrictedAccess: boolean;
+}
+
+// ==========================================
 // 13. RESEARCH DATA MANAGEMENT & DOCUMENT RETENTION
 // ==========================================
 

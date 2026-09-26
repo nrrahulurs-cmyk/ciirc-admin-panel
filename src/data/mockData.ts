@@ -55,6 +55,8 @@ import {
   NewsAnnouncement,
   ComplianceRecord,
   ProjectReport,
+  ResearchMisconductCase,
+  ResearchGrievance,
 } from "@/types";
 
 export const kpiMetrics: KPICardData[] = [
@@ -4191,6 +4193,88 @@ export const projectReportsList: ProjectReport[] = [
     signedUcUrl: "https://ciirc.jyothyit.ac.in/governance/final-closure-proj05-csir.pdf",
     verifiedBy: "Finance & Accounts Section",
     timestamp: "2026-07-28T16:45:00Z",
+  },
+];
+
+// ==========================================
+// 26. RESEARCH MISCONDUCT CASES (RESTRICTED GOVERNANCE)
+// ==========================================
+
+export const researchMisconductCasesList: ResearchMisconductCase[] = [
+  {
+    id: "rmc-01",
+    caseNumber: "CIIRC/RMC/2026/01",
+    complaintTitle: "Allegation of Inappropriate Image Splicing in SEM Micrograph Figure",
+    reporterName: "Anonymous External Academic Whistleblower",
+    respondentPerson: "Dr. Vikram Sethi (Postdoctoral Fellow)",
+    respondentRole: "Research Associate",
+    relatedProjectId: "proj-05",
+    relatedProjectTitle: "High-Entropy Alloy Coatings for Marine Turbines",
+    category: "Data Falsification",
+    evidenceSummary: "Whistleblower noted contrast discontinuity in supplementary Figure S4 of conference manuscript.",
+    investigationCommittee: "Fact-Finding Inquiry Committee (Chair: Dr. Arvind Sharma, Dean R&D)",
+    filingDate: "2026-05-14",
+    hearingDate: "2026-06-02",
+    decision: "Exonerated after forensic analysis of raw Zeiss FE-SEM TIFF files with intact metadata timestamps.",
+    resolutionDetails: "Full integrity confirmed. Raw instrument data corroborated micrograph authenticity. Case closed with formal letter of clearance.",
+    status: "Exonerated",
+    restrictedAccess: true,
+  },
+  {
+    id: "rmc-02",
+    caseNumber: "CIIRC/RMC/2026/02",
+    complaintTitle: "Authorship Attribution Dispute on Microfluidic Diagnostic Patent Application",
+    reporterName: "Dr. Ananya Ray",
+    respondentPerson: "Lead Project Co-Investigator",
+    respondentRole: "Senior Scientist",
+    relatedProjectId: "proj-03",
+    relatedProjectTitle: "Centrifugal Microfluidic Multi-Analyte Diagnostic Platform",
+    category: "Authorship Dispute",
+    evidenceSummary: "Dispute regarding contributor ranking and intellectual contributions toward disc fluidic valve design.",
+    investigationCommittee: "IPR & Ethics Ombudsman Committee",
+    filingDate: "2026-07-10",
+    hearingDate: "2026-07-28",
+    decision: "Amended co-inventorship schedule filed with Indian Patent Office attributing joint inventor status.",
+    resolutionDetails: "Mediation successfully executed; updated patent Form-1 filed with Controller General of Patents.",
+    status: "Closed",
+    restrictedAccess: true,
+  },
+];
+
+// ==========================================
+// 27. RESEARCH GRIEVANCE REDRESSAL (RESEARCH COMMITTEE)
+// ==========================================
+
+export const researchGrievancesList: ResearchGrievance[] = [
+  {
+    id: "grv-01",
+    grievanceNumber: "CIIRC/GRV/2026/01",
+    requesterName: "Dr. Kavitha Sundaram",
+    requesterRole: "Associate Professor",
+    requesterDepartment: "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)",
+    issueDescription: "Appeal regarding SIF analytical equipment priority slot allocation during commercial testing peaks.",
+    relatedDecision: "SIF Allocation Circular Q2/2026",
+    committeeName: "Institutional Research Facilities Standing Committee",
+    representationDate: "2026-06-18",
+    status: "Resolved",
+    resolutionDetails: "Dedicated 35% time-quota ring-fenced for internal sponsored researchers during peak industrial testing weeks.",
+    closureDate: "2026-06-30",
+    restrictedAccess: true,
+  },
+  {
+    id: "grv-02",
+    grievanceNumber: "CIIRC/GRV/2026/02",
+    requesterName: "Meera Krishnan",
+    requesterRole: "Dean (Innovation, Incubation & IPR)",
+    requesterDepartment: "Centre for Incubation, Innovation, Research and Consultancy (CIIRC)",
+    issueDescription: "Representation seeking expedited statutory approvals for TBI incubatee hazardous solvent storage in Cleanroom B.",
+    relatedDecision: "Chemical Safety Policy Clause 8",
+    committeeName: "Institutional Biosafety & Chemical Hazards Committee (IBSC)",
+    representationDate: "2026-08-04",
+    status: "Resolved",
+    resolutionDetails: "Fire-rated secondary containment locker installed and certified by Safety Officer; permit issued.",
+    closureDate: "2026-08-20",
+    restrictedAccess: true,
   },
 ];
 

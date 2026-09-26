@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  User,
   Users,
   FolderGit2,
   BookOpen,
@@ -10,14 +9,13 @@ import {
   Calendar,
   Newspaper,
   ChevronDown,
-  Plus,
-  FileText,
 } from "lucide-react";
 import {
   ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
+  YAxis,
   Tooltip,
   CartesianGrid,
 } from "recharts";
@@ -102,7 +100,6 @@ export function DashboardView({
   };
 
   const waveData = waveDataMap[selectedRange] || waveDataMap["Last 6 Months"];
-
   const canonical = getCanonicalMetrics();
 
   const kpis = [
@@ -113,9 +110,66 @@ export function DashboardView({
     { id: "events", number: String(canonical.upcomingEventsCount), label: "Upcoming Events", trend: "20%", icon: Calendar, module: "events" as ModuleId },
   ];
 
+  // Global unified entity definitions for Quick Actions (Issues 2, 5, 7, 20)
+  const quickActionItems = [
+    {
+      id: "researcher",
+      label: "Researcher",
+      icon: Users,
+      bgClass: "bg-sky-50 dark:bg-sky-950/40",
+      textClass: "text-sky-600 dark:text-sky-400",
+      borderClass: "border-sky-200/60 dark:border-sky-800/60",
+      onClick: () => onOpenQuickCreate("researcher"),
+      tooltip: "Register new researcher profile",
+    },
+    {
+      id: "project",
+      label: "Project",
+      icon: FolderGit2,
+      bgClass: "bg-emerald-50 dark:bg-emerald-950/40",
+      textClass: "text-emerald-600 dark:text-emerald-400",
+      borderClass: "border-emerald-200/60 dark:border-emerald-800/60",
+      onClick: () => onOpenQuickCreate("project"),
+      tooltip: "Initiate new research project",
+    },
+    {
+      id: "publication",
+      label: "Publication",
+      icon: BookOpen,
+      bgClass: "bg-indigo-50 dark:bg-indigo-950/40",
+      textClass: "text-indigo-600 dark:text-indigo-400",
+      borderClass: "border-indigo-200/60 dark:border-indigo-800/60",
+      onClick: () => onOpenQuickCreate("publication"),
+      tooltip: "Index publication or journal article",
+    },
+    {
+      id: "event",
+      label: "Event",
+      icon: Calendar,
+      bgClass: "bg-amber-50 dark:bg-amber-950/40",
+      textClass: "text-amber-600 dark:text-amber-400",
+      borderClass: "border-amber-200/60 dark:border-amber-800/60",
+      onClick: () => onOpenQuickCreate("event"),
+      tooltip: "Schedule seminar or conference",
+    },
+    {
+      id: "news",
+      label: "News",
+      icon: Newspaper,
+      bgClass: "bg-purple-50 dark:bg-purple-950/40",
+      textClass: "text-purple-600 dark:text-purple-400",
+      borderClass: "border-purple-200/60 dark:border-purple-800/60",
+      onClick: () => {
+        onSelectModule("pages");
+        toast("Opening News Studio", "Publish or schedule announcements.", "info");
+      },
+      tooltip: "Publish institutional news",
+    },
+  ];
+
   return (
-    <div className="space-y-4">
-      {/* 1. Header Greeting — Inter 25px / 700 with optical letter spacing */}
+    <div className="space-y-4 max-w-full">
+      {/* 1. Header Greeting */}
       <div>
         <h1 className="text-[25px] leading-8 font-bold tracking-[-0.022em] text-slate-900 dark:text-white flex items-center gap-2">
           <span>Good Morning, Admin!</span>
@@ -126,7 +180,7 @@ export function DashboardView({
         </p>
       </div>
 
-      {/* 2. KPI Strip — Exactly 5 cards matching reference visual & hierarchy */}
+      {/* 2. KPI Strip — Consistent corner radii and semantic trend colors */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
@@ -151,8 +205,8 @@ export function DashboardView({
                 <div className="text-[12px] font-medium text-slate-600 dark:text-slate-400 tracking-[-0.005em]">
                   {kpi.label}
                 </div>
-                {/* Tertiary Trend Pill */}
-                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold mt-1.5">
+                {/* Tertiary Trend Pill (Green exclusively for growth) */}
+                <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold mt-1.5">
                   <span>↑</span>
                   <span>{kpi.trend}</span>
                 </div>
@@ -164,17 +218,31 @@ export function DashboardView({
 
       {/* 3. Middle Row: Research & Activity Overview (8 cols) + Requires Attention (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        {/* Left: Research & Activity Overview */}
-        <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
-            <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
-              Research & Activity Overview
-            </h2>
+        {/* Left: Research & Activity Overview with Legend & Y-Axis (Issue 11) */}
+        <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
+            <div className="flex items-center gap-3">
+              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
+                Research & Activity Overview
+              </h2>
+
+              {/* Chart Legend (Issue 11) */}
+              <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium">
+                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0066cc]" />
+                  <span>Research Momentum</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#7c8cf8]" />
+                  <span>Citations & Output</span>
+                </div>
+              </div>
+            </div>
 
             <div className="relative">
               <button
                 onClick={() => setShowRangeDropdown(!showRangeDropdown)}
-                className="h-[28px] px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 text-[11.5px] font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 transition-colors"
+                className="btn-secondary h-[28px] px-2.5 rounded-lg text-[11.5px] font-medium flex items-center gap-1"
               >
                 <span>{selectedRange}</span>
                 <ChevronDown className="w-3 h-3 text-slate-400" strokeWidth={1.85} />
@@ -199,14 +267,14 @@ export function DashboardView({
             </div>
           </div>
 
-          {/* Smooth Wavy Two-Series Spline Chart matching reference (No Y-axis numbers) */}
+          {/* Smooth Wavy Two-Series Spline Chart with Y-Axis & Tooltip Context (Issue 11) */}
           <div className="h-48 sm:h-56 w-full mt-2">
             {mounted && chartReady ? (
               <ResponsiveContainer width="100%" height="100%" key={`resp-${chartAnimKey}`}>
                 <AreaChart
                   key={`chart-${chartAnimKey}-${selectedRange}`}
                   data={waveData}
-                  margin={{ top: 12, right: 8, left: 8, bottom: 0 }}
+                  margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="waveBlue" x1="0" y1="0" x2="0" y2="1">
@@ -226,6 +294,15 @@ export function DashboardView({
                     tickLine={false}
                     axisLine={false}
                   />
+                  {/* Numerical scale on Y-axis (Issue 11) */}
+                  <YAxis
+                    stroke="#94a3b8"
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={false}
+                    width={26}
+                    domain={[0, "auto"]}
+                  />
                   <Tooltip
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
@@ -237,7 +314,7 @@ export function DashboardView({
                               <span className="font-bold">{payload[0]?.value}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3 text-[11.5px]">
-                              <span className="text-[#7c8cf8] font-medium">Citations:</span>
+                              <span className="text-[#7c8cf8] font-medium">Citations & Output:</span>
                               <span className="font-bold">{payload[1]?.value}</span>
                             </div>
                           </div>
@@ -249,6 +326,7 @@ export function DashboardView({
                   <Area
                     type="natural"
                     dataKey="waveA"
+                    name="Research Momentum"
                     stroke="#0066cc"
                     strokeWidth={2.25}
                     fillOpacity={1}
@@ -261,6 +339,7 @@ export function DashboardView({
                   <Area
                     type="natural"
                     dataKey="waveB"
+                    name="Citations & Output"
                     stroke="#7c8cf8"
                     strokeWidth={2.25}
                     fillOpacity={1}
@@ -282,8 +361,8 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Right: Requires Attention Panel matching reference */}
-        <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between">
+        {/* Right: Requires Attention Panel (Non-redundant labels & non-conflicting colors: Issues 6 & 16) */}
+        <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
@@ -294,7 +373,7 @@ export function DashboardView({
               </span>
             </div>
 
-            {/* 4 Rows matching reference items */}
+            {/* List items without redundant counts (Issue 16) & using amber/blue attention badges instead of green (Issue 6) */}
             <div className="space-y-3 mt-3.5">
               <div
                 onClick={() => {
@@ -307,7 +386,7 @@ export function DashboardView({
                   4
                 </div>
                 <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  4 content approvals
+                  Content approvals pending
                 </span>
               </div>
 
@@ -318,11 +397,11 @@ export function DashboardView({
                 }}
                 className="flex items-center gap-3 cursor-pointer group py-0.5"
               >
-                <div className="w-6 h-6 rounded-md bg-orange-50 dark:bg-orange-950/40 text-orange-500 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
                   2
                 </div>
                 <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  2 incomplete researcher profiles
+                  Incomplete researcher profiles
                 </span>
               </div>
 
@@ -333,11 +412,11 @@ export function DashboardView({
                 }}
                 className="flex items-center gap-3 cursor-pointer group py-0.5"
               >
-                <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-500 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
                   3
                 </div>
                 <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  3 upcoming events
+                  Upcoming events requiring review
                 </span>
               </div>
 
@@ -348,11 +427,11 @@ export function DashboardView({
                 }}
                 className="flex items-center gap-3 cursor-pointer group py-0.5"
               >
-                <div className="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-6 h-6 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
                   3
                 </div>
                 <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  3 new form submissions
+                  New form submissions
                 </span>
               </div>
             </div>
@@ -360,28 +439,29 @@ export function DashboardView({
         </div>
       </div>
 
-      {/* 4. Bottom Row: Recent Activity (6 cols) + Quick Actions (6 cols) */}
+      {/* 4. Bottom Row: 8:4 Grid Alignment matching top row (Issue 13) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        {/* Left: Recent Activity */}
-        <div className="lg:col-span-6 ref-card p-4 sm:p-5 flex flex-col justify-between">
+        {/* Left: Recent Activity (8 cols - exactly aligns with 8 cols above) */}
+        <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
                 Recent Activity
               </h2>
               <button
                 onClick={() => onSelectModule("audit-logs")}
-                className="text-[12px] font-semibold text-[#0066cc] dark:text-sky-400 hover:underline"
+                className="text-[12px] font-medium text-[#0066cc] dark:text-sky-400 hover:underline"
               >
                 View All
               </button>
             </div>
 
-            {/* 3 Activity Items */}
+            {/* 3 Activity Items with unified iconography and colors (Issues 2, 5, 7) */}
             <div className="space-y-3 mt-3.5">
+              {/* Publication: BookOpen + Indigo */}
               <div className="flex items-center gap-3">
-                <div className="w-[34px] h-[34px] rounded-xl bg-[#e0f2fe] dark:bg-sky-950/50 text-[#0066cc] flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4" strokeWidth={1.85} />
+                <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-4 h-4" strokeWidth={1.85} />
                 </div>
                 <div className="min-w-0">
                   <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
@@ -393,8 +473,9 @@ export function DashboardView({
                 </div>
               </div>
 
+              {/* Event: Calendar + Amber */}
               <div className="flex items-center gap-3">
-                <div className="w-[34px] h-[34px] rounded-xl bg-[#f3e8ff] dark:bg-purple-950/50 text-[#9333ea] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-center shrink-0">
                   <Calendar className="w-4 h-4" strokeWidth={1.85} />
                 </div>
                 <div className="min-w-0">
@@ -407,8 +488,9 @@ export function DashboardView({
                 </div>
               </div>
 
+              {/* Project: FolderGit2 + Emerald */}
               <div className="flex items-center gap-3">
-                <div className="w-[34px] h-[34px] rounded-xl bg-[#e0e7ff] dark:bg-indigo-950/50 text-[#4f46e5] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
                   <FolderGit2 className="w-4 h-4" strokeWidth={1.85} />
                 </div>
                 <div className="min-w-0">
@@ -424,92 +506,41 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Right: Quick Actions */}
-        <div className="lg:col-span-6 ref-card p-4 sm:p-5 flex flex-col justify-between">
+        {/* Right: Quick Actions (4 cols - exactly aligns with 4 cols above; Issues 13, 14, 18, 19, 20) */}
+        <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
+            {/* Header aligned in baseline with Recent Activity; redundant Create New button removed (Issues 14, 18, 19) */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
                 Quick Actions
               </h2>
-              {/* + Create New primary action button matching specification */}
-              <button
-                onClick={() => onOpenQuickCreate("researcher")}
-                className="btn-primary h-[33px] px-3 rounded-lg text-[12px] font-semibold flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" strokeWidth={2.2} />
-                <span>Create New</span>
-              </button>
+              <span className="text-[11.5px] font-medium text-slate-400 dark:text-slate-500">
+                Creation Shortcuts
+              </span>
             </div>
 
-            {/* Exactly 5 compact rounded tiles in a horizontal row */}
-            <div className="grid grid-cols-5 gap-2 mt-3.5 text-center">
-              {/* Tile 1: Researcher */}
-              <button
-                onClick={() => onOpenQuickCreate("researcher")}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <div className="w-[40px] h-[40px] rounded-2xl bg-[#e0f2fe] dark:bg-sky-950/40 text-[#0066cc] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform shadow-2xs">
-                  <User className="w-[18px] h-[18px]" strokeWidth={1.85} />
-                </div>
-                <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 tracking-[-0.005em]">
-                  Researcher
-                </span>
-              </button>
-
-              {/* Tile 2: Project */}
-              <button
-                onClick={() => onOpenQuickCreate("project")}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <div className="w-[40px] h-[40px] rounded-2xl bg-[#ccfbf1] dark:bg-teal-950/40 text-[#0d9488] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform shadow-2xs">
-                  <FolderGit2 className="w-[18px] h-[18px]" strokeWidth={1.85} />
-                </div>
-                <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 tracking-[-0.005em]">
-                  Project
-                </span>
-              </button>
-
-              {/* Tile 3: Publication */}
-              <button
-                onClick={() => onOpenQuickCreate("publication")}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <div className="w-[40px] h-[40px] rounded-2xl bg-[#dbeafe] dark:bg-blue-950/40 text-[#2563eb] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform shadow-2xs">
-                  <BookOpen className="w-[18px] h-[18px]" strokeWidth={1.85} />
-                </div>
-                <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 tracking-[-0.005em]">
-                  Publication
-                </span>
-              </button>
-
-              {/* Tile 4: Event */}
-              <button
-                onClick={() => onOpenQuickCreate("event")}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <div className="w-[40px] h-[40px] rounded-2xl bg-[#ffe4e6] dark:bg-rose-950/40 text-[#e11d48] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform shadow-2xs">
-                  <Calendar className="w-[18px] h-[18px]" strokeWidth={1.85} />
-                </div>
-                <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 tracking-[-0.005em]">
-                  Event
-                </span>
-              </button>
-
-              {/* Tile 5: News */}
-              <button
-                onClick={() => {
-                  onSelectModule("pages");
-                  toast("Opening News Studio", "Publish or schedule announcements.", "info");
-                }}
-                className="flex flex-col items-center gap-1.5 group"
-              >
-                <div className="w-[40px] h-[40px] rounded-2xl bg-[#f3e8ff] dark:bg-purple-950/40 text-[#9333ea] flex items-center justify-center group-hover:-translate-y-0.5 transition-transform shadow-2xs">
-                  <Newspaper className="w-[18px] h-[18px]" strokeWidth={1.85} />
-                </div>
-                <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-300 tracking-[-0.005em]">
-                  News
-                </span>
-              </button>
+            {/* Shortcut buttons with explicit card containers and interactive affordances (Issues 7 & 20) */}
+            <div className="grid grid-cols-5 gap-2 mt-3.5">
+              {quickActionItems.map((action) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    onClick={action.onClick}
+                    className="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all duration-150 group cursor-pointer active:scale-95 text-center min-w-0"
+                    title={action.tooltip}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-lg ${action.bgClass} ${action.textClass} ${action.borderClass} border flex items-center justify-center group-hover:scale-105 transition-transform shrink-0`}
+                    >
+                      <Icon className="w-4 h-4" strokeWidth={1.85} />
+                    </div>
+                    <span className="text-[10px] sm:text-[10.5px] font-medium text-slate-700 dark:text-slate-300 mt-1 leading-tight text-center">
+                      {action.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

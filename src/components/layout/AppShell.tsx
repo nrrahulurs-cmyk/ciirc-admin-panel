@@ -124,10 +124,10 @@ function AppShellContent() {
   }
 
   return (
-    <div className="min-h-screen w-screen ciirc-atmospheric-bg text-slate-900 dark:text-slate-100 flex items-center justify-center p-2.5 sm:p-3.5 lg:p-4 overflow-x-hidden">
+    <div className="min-h-screen w-full max-w-full ciirc-atmospheric-bg text-slate-900 dark:text-slate-100 flex items-center justify-center p-2.5 sm:p-3.5 lg:p-4 overflow-x-hidden">
       {/* Floating Workspace Shell matching exact specification */}
       <div
-        className="w-full max-w-[1580px] h-[calc(100vh-28px)] rounded-[22px] bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl border border-[rgba(50,90,160,0.09)] dark:border-slate-800/80 shadow-[0_10px_35px_rgba(30,60,120,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex overflow-hidden transition-all duration-700 ease-out"
+        className="w-full max-w-[1580px] h-[calc(100vh-28px)] rounded-2xl bg-white/95 dark:bg-[#0c1220]/95 backdrop-blur-xl border border-[rgba(50,90,160,0.09)] dark:border-slate-800/80 shadow-[0_10px_35px_rgba(30,60,120,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] flex overflow-hidden transition-all duration-700 ease-out"
         style={{
           opacity: showIntro && !workspaceReady ? 0.9 : 1,
           transform: showIntro && !workspaceReady ? "scale(0.985)" : "scale(1)",
