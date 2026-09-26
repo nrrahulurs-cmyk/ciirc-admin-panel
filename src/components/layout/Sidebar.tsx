@@ -100,39 +100,42 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* Grouped navigation list (Issue 17) */}
-        <nav className="space-y-3 max-h-[calc(100vh-190px)] overflow-y-auto pr-0.5 scrollbar-thin">
-          {navSections.map((section) => (
-            <div key={section.category} className="space-y-0.5">
-              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2.5 py-1">
+        {/* Grouped navigation list (Issues 3, 4, 5, 17) */}
+        <nav className="space-y-4 max-h-[calc(100vh-190px)] overflow-y-auto pr-0.5 scrollbar-thin">
+          {navSections.map((section, idx) => (
+            <div key={section.category} className={idx > 0 ? "pt-2 border-t border-slate-100/70 dark:border-slate-800/50" : ""}>
+              {/* Category header aligned with navigation text labels (Issue 5) and balanced proximity (Issues 3 & 4) */}
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider pl-9 pr-2.5 pt-1.5 pb-2">
                 {section.category}
               </div>
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const active = isItemActive(item.id);
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isItemActive(item.id);
 
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => onSelectModule(item.id)}
-                    className={`w-full h-[34px] flex items-center gap-2.5 px-2.5 rounded-lg text-[12px] font-medium transition-colors duration-150 text-left ${
-                      active
-                        ? "bg-[#edf2fe] dark:bg-blue-950/50 text-[#0055b3] dark:text-sky-300 font-semibold"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-[15px] h-[15px] shrink-0 ${
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => onSelectModule(item.id)}
+                      className={`w-full h-[34px] flex items-center gap-2.5 px-2.5 rounded-lg text-[12px] font-medium transition-colors duration-150 text-left ${
                         active
-                          ? "text-[#0066cc] dark:text-sky-400"
-                          : "text-slate-400 dark:text-slate-500"
+                          ? "bg-[#edf2fe] dark:bg-blue-950/50 text-[#0055b3] dark:text-sky-300 font-semibold"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-slate-200"
                       }`}
-                      strokeWidth={1.85}
-                    />
-                    <span className="truncate tracking-[-0.005em]">{item.label}</span>
-                  </button>
-                );
-              })}
+                    >
+                      <Icon
+                        className={`w-[15px] h-[15px] shrink-0 ${
+                          active
+                            ? "text-[#0066cc] dark:text-sky-400"
+                            : "text-slate-400 dark:text-slate-500"
+                        }`}
+                        strokeWidth={1.85}
+                      />
+                      <span className="truncate tracking-[-0.005em]">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </nav>

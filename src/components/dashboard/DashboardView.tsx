@@ -9,6 +9,7 @@ import {
   Calendar,
   Newspaper,
   ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -110,7 +111,7 @@ export function DashboardView({
     { id: "events", number: String(canonical.upcomingEventsCount), label: "Upcoming Events", trend: "20%", icon: Calendar, module: "events" as ModuleId },
   ];
 
-  // Global unified entity definitions for Quick Actions (Issues 2, 5, 7, 20)
+  // Global unified entity definitions for Quick Actions (Issues 11, 12, 15)
   const quickActionItems = [
     {
       id: "researcher",
@@ -136,9 +137,9 @@ export function DashboardView({
       id: "publication",
       label: "Publication",
       icon: BookOpen,
-      bgClass: "bg-indigo-50 dark:bg-indigo-950/40",
-      textClass: "text-indigo-600 dark:text-indigo-400",
-      borderClass: "border-indigo-200/60 dark:border-indigo-800/60",
+      bgClass: "bg-purple-50 dark:bg-purple-950/40",
+      textClass: "text-purple-600 dark:text-purple-400",
+      borderClass: "border-purple-200/60 dark:border-purple-800/60",
       onClick: () => onOpenQuickCreate("publication"),
       tooltip: "Index publication or journal article",
     },
@@ -156,9 +157,9 @@ export function DashboardView({
       id: "news",
       label: "News",
       icon: Newspaper,
-      bgClass: "bg-purple-50 dark:bg-purple-950/40",
-      textClass: "text-purple-600 dark:text-purple-400",
-      borderClass: "border-purple-200/60 dark:border-purple-800/60",
+      bgClass: "bg-blue-50 dark:bg-blue-950/40",
+      textClass: "text-blue-600 dark:text-blue-400",
+      borderClass: "border-blue-200/60 dark:border-blue-800/60",
       onClick: () => {
         onSelectModule("pages");
         toast("Opening News Studio", "Publish or schedule announcements.", "info");
@@ -175,7 +176,7 @@ export function DashboardView({
           <span>Good Morning, Admin!</span>
           <span className="text-[22px]">👋</span>
         </h1>
-        <p className="text-[12.5px] leading-5 text-slate-500 dark:text-slate-400 font-normal tracking-[-0.005em] mt-0.5">
+        <p className="text-[12.5px] leading-5 text-slate-600 dark:text-slate-400 font-normal tracking-[-0.005em] mt-0.5">
           Here's what's happening at CIIRC today.
         </p>
       </div>
@@ -218,28 +219,28 @@ export function DashboardView({
 
       {/* 3. Middle Row: Research & Activity Overview (8 cols) + Requires Attention (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        {/* Left: Research & Activity Overview with Legend & Y-Axis (Issue 11) */}
+        {/* Left: Research & Activity Overview with left-aligned Legend & vertically aligned controls (Issues 9 & 16) */}
         <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
             <div className="flex items-center gap-3">
-              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
+              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em] leading-none">
                 Research & Activity Overview
               </h2>
 
-              {/* Chart Legend (Issue 11) */}
-              <div className="hidden sm:flex items-center gap-3 text-[11px] font-medium">
+              {/* Chart Legend directly grouped adjacent to the title (Issue 9 & 16) */}
+              <div className="hidden sm:flex items-center gap-3 text-[11.5px] font-medium pl-3 border-l border-slate-200 dark:border-slate-700 leading-none">
                 <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#0066cc]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0066cc] shrink-0" />
                   <span>Research Momentum</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#7c8cf8]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#7c8cf8] shrink-0" />
                   <span>Citations & Output</span>
                 </div>
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative flex items-center">
               <button
                 onClick={() => setShowRangeDropdown(!showRangeDropdown)}
                 className="btn-secondary h-[28px] px-2.5 rounded-lg text-[11.5px] font-medium flex items-center gap-1"
@@ -267,7 +268,7 @@ export function DashboardView({
             </div>
           </div>
 
-          {/* Smooth Wavy Two-Series Spline Chart with Y-Axis & Tooltip Context (Issue 11) */}
+          {/* Smooth Wavy Two-Series Spline Chart with Y-Axis vertically centered on grid lines (Issue 10) */}
           <div className="h-48 sm:h-56 w-full mt-2">
             {mounted && chartReady ? (
               <ResponsiveContainer width="100%" height="100%" key={`resp-${chartAnimKey}`}>
@@ -294,7 +295,7 @@ export function DashboardView({
                     tickLine={false}
                     axisLine={false}
                   />
-                  {/* Numerical scale on Y-axis (Issue 11) */}
+                  {/* Numerical scale on Y-axis centered vertically on grid lines with dy: 3 (Issue 10) */}
                   <YAxis
                     stroke="#94a3b8"
                     fontSize={10}
@@ -302,6 +303,7 @@ export function DashboardView({
                     axisLine={false}
                     width={26}
                     domain={[0, "auto"]}
+                    tick={{ dy: 3, fill: "#94a3b8", fontSize: 10 }}
                   />
                   <Tooltip
                     content={({ active, payload, label }) => {
@@ -361,10 +363,10 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Right: Requires Attention Panel (Non-redundant labels & non-conflicting colors: Issues 6 & 16) */}
+        {/* Right: Requires Attention Panel (Consistent semantic scale & interactive chevrons: Issues 8 & 14) */}
         <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
                 Requires Attention
               </h2>
@@ -373,108 +375,128 @@ export function DashboardView({
               </span>
             </div>
 
-            {/* List items without redundant counts (Issue 16) & using amber/blue attention badges instead of green (Issue 6) */}
-            <div className="space-y-3 mt-3.5">
+            {/* List items with interactive chevrons (Issue 8) and unified semantic color scale (Issue 14) */}
+            <div className="space-y-1.5 mt-3">
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   onSelectModule("workflow-approvals");
                   toast("Navigated to Workflow", "4 content approvals queued for review.", "info");
                 }}
-                className="flex items-center gap-3 cursor-pointer group py-0.5"
+                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
               >
-                <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-500 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
-                  4
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                    4
+                  </div>
+                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                    Content approvals pending
+                  </span>
                 </div>
-                <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  Content approvals pending
-                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
               </div>
 
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   onSelectModule("researchers");
                   toast("Navigated to Researchers", "Filtered 2 incomplete profiles.", "info");
                 }}
-                className="flex items-center gap-3 cursor-pointer group py-0.5"
+                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
               >
-                <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
-                  2
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                    2
+                  </div>
+                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                    Incomplete researcher profiles
+                  </span>
                 </div>
-                <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  Incomplete researcher profiles
-                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
               </div>
 
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   onSelectModule("events");
                   toast("Navigated to Events", "Managing 3 upcoming symposiums.", "info");
                 }}
-                className="flex items-center gap-3 cursor-pointer group py-0.5"
+                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
               >
-                <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/40 text-amber-600 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
-                  3
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                    3
+                  </div>
+                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                    Upcoming events requiring review
+                  </span>
                 </div>
-                <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  Upcoming events requiring review
-                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
               </div>
 
               <div
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   onSelectModule("form-submissions");
                   toast("Navigated to Forms", "Reviewing 3 collaboration inquiries.", "info");
                 }}
-                className="flex items-center gap-3 cursor-pointer group py-0.5"
+                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
               >
-                <div className="w-6 h-6 rounded-md bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-[11.5px] shrink-0 group-hover:scale-105 transition-transform">
-                  3
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                    3
+                  </div>
+                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                    New form submissions
+                  </span>
                 </div>
-                <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] transition-colors tracking-[-0.005em]">
-                  New form submissions
-                </span>
+                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 4. Bottom Row: 8:4 Grid Alignment matching top row (Issue 13) */}
+      {/* 4. Bottom Row: 8:4 Grid Alignment matching top row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        {/* Left: Recent Activity (8 cols - exactly aligns with 8 cols above) */}
+        {/* Left: Recent Activity with balanced View All button (Issue 13), consistent metadata (Issue 7), and tighter density (Issue 6) */}
         <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
-              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px] px-0.5">
+              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em] leading-none">
                 Recent Activity
               </h2>
               <button
                 onClick={() => onSelectModule("audit-logs")}
-                className="text-[12px] font-medium text-[#0066cc] dark:text-sky-400 hover:underline"
+                className="text-[12px] font-medium text-[#0066cc] dark:text-sky-400 hover:underline leading-none py-1"
               >
                 View All
               </button>
             </div>
 
-            {/* 3 Activity Items with unified iconography and colors (Issues 2, 5, 7) */}
-            <div className="space-y-3 mt-3.5">
-              {/* Publication: BookOpen + Indigo */}
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center shrink-0">
+            {/* 3 Activity Items with unified iconography and colors (Issue 11), consistent metadata (Issue 7), and high density (Issue 6) */}
+            <div className="space-y-2 mt-3">
+              {/* Publication: BookOpen + Purple (strictly matches Quick Actions: Issue 11) */}
+              <div className="flex items-center gap-3 py-1">
+                <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60 flex items-center justify-center shrink-0">
                   <BookOpen className="w-4 h-4" strokeWidth={1.85} />
                 </div>
                 <div className="min-w-0">
                   <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
                     Publication updated
                   </div>
-                  <div className="text-[11.5px] text-slate-400 leading-snug mt-0.5">
+                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
                     by Dr. Sharma · 10:42 AM
                   </div>
                 </div>
               </div>
 
-              {/* Event: Calendar + Amber */}
-              <div className="flex items-center gap-3">
+              {/* Event: Calendar + Amber with 'by Admin' (Issue 7) */}
+              <div className="flex items-center gap-3 py-1">
                 <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-center shrink-0">
                   <Calendar className="w-4 h-4" strokeWidth={1.85} />
                 </div>
@@ -482,14 +504,14 @@ export function DashboardView({
                   <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
                     Event approved
                   </div>
-                  <div className="text-[11.5px] text-slate-400 leading-snug mt-0.5">
-                    Admin · 10:18 AM
+                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
+                    by Admin · 10:18 AM
                   </div>
                 </div>
               </div>
 
               {/* Project: FolderGit2 + Emerald */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 py-1">
                 <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
                   <FolderGit2 className="w-4 h-4" strokeWidth={1.85} />
                 </div>
@@ -497,7 +519,7 @@ export function DashboardView({
                   <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
                     New research project created
                   </div>
-                  <div className="text-[11.5px] text-slate-400 leading-snug mt-0.5">
+                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
                     by Prof. Mehta · 09:51 AM
                   </div>
                 </div>
@@ -506,36 +528,35 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Right: Quick Actions (4 cols - exactly aligns with 4 cols above; Issues 13, 14, 18, 19, 20) */}
+        {/* Right: Quick Actions with prominent button sizing & solid visual weight (Issues 12 & 15) */}
         <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            {/* Header aligned in baseline with Recent Activity; redundant Create New button removed (Issues 14, 18, 19) */}
             <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
-              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
+              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em] leading-none">
                 Quick Actions
               </h2>
-              <span className="text-[11.5px] font-medium text-slate-400 dark:text-slate-500">
+              <span className="text-[11.5px] font-medium text-slate-500 dark:text-slate-400">
                 Creation Shortcuts
               </span>
             </div>
 
-            {/* Shortcut buttons with explicit card containers and interactive affordances (Issues 7 & 20) */}
-            <div className="grid grid-cols-5 gap-2 mt-3.5">
+            {/* Shortcut buttons with solid visual weight and prominent sizing (Issues 12 & 15) */}
+            <div className="grid grid-cols-5 gap-2.5 mt-3.5">
               {quickActionItems.map((action) => {
                 const Icon = action.icon;
                 return (
                   <button
                     key={action.id}
                     onClick={action.onClick}
-                    className="flex flex-col items-center justify-center p-2 rounded-lg border border-slate-200/70 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs transition-all duration-150 group cursor-pointer active:scale-95 text-center min-w-0"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:border-[#0066cc]/40 dark:hover:border-sky-400/50 shadow-xs hover:shadow-sm transition-all duration-150 group cursor-pointer active:scale-95 text-center min-w-0"
                     title={action.tooltip}
                   >
                     <div
-                      className={`w-8 h-8 rounded-lg ${action.bgClass} ${action.textClass} ${action.borderClass} border flex items-center justify-center group-hover:scale-105 transition-transform shrink-0`}
+                      className={`w-10 h-10 rounded-lg ${action.bgClass} ${action.textClass} ${action.borderClass} border flex items-center justify-center group-hover:scale-105 transition-transform shrink-0`}
                     >
-                      <Icon className="w-4 h-4" strokeWidth={1.85} />
+                      <Icon className="w-[18px] h-[18px]" strokeWidth={1.85} />
                     </div>
-                    <span className="text-[10px] sm:text-[10.5px] font-medium text-slate-700 dark:text-slate-300 mt-1 leading-tight text-center">
+                    <span className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700 dark:text-slate-300 mt-1.5 leading-tight text-center tracking-tight">
                       {action.label}
                     </span>
                   </button>
