@@ -14,10 +14,12 @@ import {
   ExternalLink,
   ChevronRight,
   X,
+  Search,
 } from "lucide-react";
 import { FormSubmission, ServiceDeskTicket } from "@/types";
 import { formSubmissionsList, serviceDeskTicketsList } from "@/data/mockData";
 import { useToast } from "../common/Toast";
+import { logAuditEntry } from "@/lib/auditLogger";
 
 interface FormField {
   id: string;
@@ -34,6 +36,11 @@ export function FormsView() {
   const [submissions, setSubmissions] = useState<FormSubmission[]>(formSubmissionsList);
   const [tickets, setTickets] = useState<ServiceDeskTicket[]>(serviceDeskTicketsList);
   const [selectedSub, setSelectedSub] = useState<FormSubmission | null>(null);
+
+  const [submissionSearch, setSubmissionSearch] = useState("");
+  const [submissionStatusFilter, setSubmissionStatusFilter] = useState("All");
+
+  const inboundNewCount = submissions.filter((s) => s.status === "New").length;
 
   // Form builder fields state
   const [formFields, setFormFields] = useState<FormField[]>([
@@ -66,11 +73,36 @@ export function FormsView() {
     setSubmissions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, status } : s))
     );
+
+    logAuditEntry({
+      userId: "usr-admin",
+      userName: "Admin",
+      userRole: "Administrator",
+      action: `Enquiry status updated to ${status} [${id}]`,
+      entityType: "FormSubmission",
+      entityId: id,
+      newValue: { status },
+      status: "Success",
+    });
+
     toast("Submission Updated", `Applicant status transitioned to ${status}.`, "success");
     if (selectedSub && selectedSub.id === id) {
       setSelectedSub({ ...selectedSub, status });
     }
   };
+
+  const filteredSubmissions = submissions.filter((sub) => {
+    const matchesSearch =
+      sub.applicantName.toLowerCase().includes(submissionSearch.toLowerCase()) ||
+      sub.email.toLowerCase().includes(submissionSearch.toLowerCase()) ||
+      sub.organization.toLowerCase().includes(submissionSearch.toLowerCase()) ||
+      sub.formType.toLowerCase().includes(submissionSearch.toLowerCase());
+
+    const matchesStatus =
+      submissionStatusFilter === "All" || sub.status.toLowerCase() === submissionStatusFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-4 pb-10">
@@ -80,7 +112,7 @@ export function FormsView() {
           <h1 className="text-[25px] leading-8 font-bold tracking-[-0.022em] text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>Forms & Enquiries Engine</span>
             <span className="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              3 Inbound New
+              {inboundNewCount} Inbound New
             </span>
           </h1>
           <p className="text-[12.5px] leading-5 text-slate-500 dark:text-slate-400 mt-0.5">
@@ -185,6 +217,38 @@ export function FormsView() {
 
       {tab === "submissions" && (
         <div className="space-y-3">
+          {/* Submissions Search and Status Filter Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-2xl ref-card">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" strokeWidth={1.85} />
+              <input
+                type="text"
+                value={submissionSearch}
+                onChange={(e) => setSubmissionSearch(e.target.value)}
+                placeholder="Search by applicant name, organization, or form type..."
+                className="w-full h-[35px] pl-8 pr-3 text-[12.5px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 focus:outline-none focus:ring-1 focus:ring-blue-500 text-slate-900 dark:text-slate-100 placeholder-slate-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={submissionStatusFilter}
+                onChange={(e) => setSubmissionStatusFilter(e.target.value)}
+                className="h-[35px] px-2.5 text-[12px] font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none"
+              >
+                <option value="All">All Statuses</option>
+                <option value="New">New</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+
+              <span className="text-[12px] text-slate-400 font-medium px-1">
+                {filteredSubmissions.length} of {submissions.length}
+              </span>
+            </div>
+          </div>
+
           <div className="rounded-2xl ref-card overflow-hidden">
             <table className="w-full text-left text-[12.5px]">
               <thead className="bg-slate-50/70 dark:bg-slate-900/70 border-b border-slate-200/80 dark:border-slate-800/80 text-slate-400 dark:text-slate-400 font-semibold uppercase text-[11px] tracking-wider">
@@ -199,7 +263,7 @@ export function FormsView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
-                {submissions.map((sub) => (
+                {filteredSubmissions.map((sub) => (
                   <tr
                     key={sub.id}
                     onClick={() => setSelectedSub(sub)}

@@ -6,7 +6,9 @@ export type Role =
   | "Event Manager"
   | "Editor"
   | "Reviewer"
-  | "Analyst";
+  | "Analyst"
+  | "Director / Management"
+  | "Lab Manager";
 
 export type Permission =
   | "View"
@@ -21,9 +23,11 @@ export type Permission =
 export const RBAC_MATRIX: Record<Role, Record<Permission, boolean>> = {
   "Super Admin": { View: true, Create: true, Edit: true, Delete: true, Approve: true, Publish: true, Export: true, Manage: true },
   Administrator: { View: true, Create: true, Edit: true, Delete: true, Approve: true, Publish: true, Export: true, Manage: false },
-  "Content Manager": { View: true, Create: true, Edit: true, Delete: false, Approve: true, Publish: true, Export: true, Manage: false },
+  "Director / Management": { View: true, Create: true, Edit: true, Delete: true, Approve: true, Publish: true, Export: true, Manage: true },
   "Research Manager": { View: true, Create: true, Edit: true, Delete: false, Approve: true, Publish: false, Export: true, Manage: false },
+  "Content Manager": { View: true, Create: true, Edit: true, Delete: false, Approve: true, Publish: true, Export: true, Manage: false },
   "Event Manager": { View: true, Create: true, Edit: true, Delete: false, Approve: false, Publish: true, Export: true, Manage: false },
+  "Lab Manager": { View: true, Create: true, Edit: true, Delete: false, Approve: true, Publish: false, Export: true, Manage: false },
   Editor: { View: true, Create: true, Edit: true, Delete: false, Approve: false, Publish: false, Export: false, Manage: false },
   Reviewer: { View: true, Create: false, Edit: false, Delete: false, Approve: true, Publish: false, Export: true, Manage: false },
   Analyst: { View: true, Create: false, Edit: false, Delete: false, Approve: false, Publish: false, Export: true, Manage: false },

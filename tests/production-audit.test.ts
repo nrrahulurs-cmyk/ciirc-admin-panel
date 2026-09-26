@@ -451,3 +451,145 @@ test("CMS & News Engine: Content Lifecycle, Slugs, and Statutory Compliance Reco
   assert.ok(getSanitizedPublicCompliance().length >= 1);
 });
 
+test("Security: Institutional Session Token Signing, Verification & Expiration", async () => {
+  const { signSessionToken, verifySessionToken } = await import("../src/lib/auth");
+
+  // 1. Valid Token Generation and Verification
+  const token = signSessionToken({
+    id: "usr-admin-01",
+    name: "Admin Rahul",
+    email: "admin@ciirc.edu.in",
+    role: "Super Admin",
+    department: "Research Systems",
+  });
+
+  const verified = verifySessionToken(token);
+  assert.equal(verified.valid, true);
+  assert.equal(verified.user?.id, "usr-admin-01");
+  assert.equal(verified.user?.role, "Super Admin");
+  assert.ok(verified.user?.exp && verified.user.exp > Math.floor(Date.now() / 1000));
+
+  // 2. Tampered Payload Detection
+  const [payloadBase64, signature] = token.split(".");
+  const tamperedPayload = Buffer.from(JSON.stringify({
+    id: "usr-hacker",
+    role: "Super Admin",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  })).toString("base64url");
+  const tamperedToken = `${tamperedPayload}.${signature}`;
+
+  const tamperedResult = verifySessionToken(tamperedToken);
+  assert.equal(tamperedResult.valid, false);
+  assert.equal(tamperedResult.error, "INVALID_SIGNATURE");
+
+  // 3. Malformed Token
+  assert.equal(verifySessionToken("not-a-token").valid, false);
+  assert.equal(verifySessionToken("").valid, false);
+});
+
+test("Security: NoSQL Injection Prevention & Query Sanitization", async () => {
+  const { sanitizeNoSqlPayload, hasNoSqlInjectionRisk } = await import("../src/lib/db/nosqlSanitizer");
+
+  // Hazardous MongoDB query operator injection payload
+  const injectionPayload = {
+    username: "admin",
+    password: { $ne: "" },
+    $where: "sleep(5000)",
+    nested: {
+      $gt: 0,
+      safeKey: "safeValue",
+      "dot.key": "hazardous",
+    },
+  };
+
+  assert.equal(hasNoSqlInjectionRisk(injectionPayload), true, "Must flag hazardous query operators");
+
+  const sanitized = sanitizeNoSqlPayload(injectionPayload) as any;
+  assert.equal(sanitized.$where, undefined, "Operator $where must be stripped");
+  assert.equal(sanitized.password.$ne, undefined, "Operator $ne must be stripped");
+  assert.equal(sanitized.nested.$gt, undefined, "Nested operator $gt must be stripped");
+  assert.equal(sanitized.nested["dot.key"], undefined, "Keys with dots must be stripped");
+  assert.equal(sanitized.nested.safeKey, "safeValue", "Legitimate fields must be preserved");
+  assert.equal(sanitized.username, "admin", "Legitimate fields must be preserved");
+});
+
+test("Database Layer: Repository Architecture & Data Access Contracts", async () => {
+  const { researchersRepo, workflowRepo, formSubmissionsRepo, eventsRepo, mediaRepo } = await import("../src/lib/db/repositories");
+  const { checkDatabaseHealth } = await import("../src/lib/db/mongodb");
+
+  // 1. Health check
+  const health = await checkDatabaseHealth();
+  assert.equal(health.connected, true);
+  assert.ok(["mongodb", "canonical-in-memory"].includes(health.type));
+
+  // 2. Researchers Repository CRUD
+  const allResearchers = await researchersRepo.getAll();
+  assert.ok(allResearchers.length >= 4);
+
+  const initialCount = await researchersRepo.count();
+  const createdResearcher = await researchersRepo.create({
+    name: "Dr. Test Scientist",
+    title: "Postdoctoral Fellow",
+    email: `test-${Date.now()}@ciirc.edu.in`,
+    department: "Cybernetics & Autonomous Systems",
+    role: "Faculty",
+    status: "Active",
+    citations: 120,
+    hIndex: 8,
+    projectsCount: 1,
+    publicationsCount: 4,
+    patentsCount: 0,
+    biography: "Test researcher biography for audit suite verification.",
+    lastUpdated: "2026-09-14",
+    researchAreas: ["Robotics"],
+  });
+
+  assert.ok(createdResearcher.id.startsWith("res-"));
+  const countAfterCreate = await researchersRepo.count();
+  assert.equal(countAfterCreate, initialCount + 1);
+
+  // Update
+  const updated = await researchersRepo.update(createdResearcher.id, { citations: 150 });
+  assert.equal(updated?.citations, 150);
+
+  // Delete
+  const deleted = await researchersRepo.delete(createdResearcher.id);
+  assert.equal(deleted, true);
+  assert.equal(await researchersRepo.count(), initialCount);
+
+  // 3. Workflow Repository
+  const pendingCount = await workflowRepo.countPending();
+  assert.ok(pendingCount >= 0);
+
+  // 4. Form Submissions Repository
+  const newFormsCount = await formSubmissionsRepo.countNew();
+  assert.ok(newFormsCount >= 0);
+
+  // 5. Events Repository
+  const upcomingEvents = await eventsRepo.countUpcoming();
+  assert.ok(upcomingEvents >= 0);
+});
+
+test("Audit Trail & Dynamic Dashboard Telemetry", async () => {
+  const { logAuditEntry, getAuditLogs } = await import("../src/lib/auditLogger");
+
+  const initialLogs = getAuditLogs(10);
+  const testAction = `Audit Verification Event: ${Date.now()}`;
+
+  const entry = logAuditEntry({
+    userId: "usr-test-runner",
+    userName: "Test Automation Suite",
+    userRole: "Super Admin",
+    action: testAction,
+    entityType: "SystemSecurity",
+    entityId: "sec-001",
+    status: "Success",
+  });
+
+  assert.ok(entry.id.startsWith("audit-"));
+  const updatedLogs = getAuditLogs(10);
+  assert.equal(updatedLogs[0].action, testAction, "Latest event must appear at top of audit log");
+  assert.equal(updatedLogs[0].userRole, "Super Admin");
+});
+
+

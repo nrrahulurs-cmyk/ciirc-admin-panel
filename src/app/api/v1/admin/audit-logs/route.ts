@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuditLogs, logAuditEntry } from "@/lib/auditLogger";
 import { hasPermission, Role } from "@/lib/rbac";
+import { getSessionFromRequest } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const userRole = (request.headers.get("x-ciirc-role") || "Analyst") as Role;
+    // Determine authenticated role from verified header or session token
+    let userRole = request.headers.get("x-ciirc-verified-role") as Role | null;
+    if (!userRole) {
+      const session = getSessionFromRequest(request);
+      if (session.valid && session.user) {
+        userRole = session.user.role;
+      }
+    }
 
-    if (!hasPermission(userRole, "View")) {
+    // Default to minimum privilege if unauthenticated
+    if (!userRole || !hasPermission(userRole, "View")) {
       return NextResponse.json(
         {
           success: false,
@@ -16,12 +25,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const logs = getAuditLogs(50);
+    const { searchParams } = new URL(request.url);
+    const limit = Math.max(1, Math.min(parseInt(searchParams.get("limit") || "50", 10), 200));
+    const search = searchParams.get("search") || "";
+    const entityType = searchParams.get("entityType") || "";
+
+    let logs = getAuditLogs(200);
+
+    if (search) {
+      const q = search.toLowerCase();
+      logs = logs.filter(
+        (l) =>
+          l.action.toLowerCase().includes(q) ||
+          l.user.toLowerCase().includes(q) ||
+          l.entity.toLowerCase().includes(q)
+      );
+    }
+
+    if (entityType && entityType !== "All") {
+      logs = logs.filter((l) => l.entityType.toLowerCase() === entityType.toLowerCase());
+    }
+
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      count: logs.length,
-      data: logs,
+      pagination: {
+        total: logs.length,
+        limit,
+      },
+      data: logs.slice(0, limit),
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -36,9 +68,20 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userRole = (request.headers.get("x-ciirc-role") || "Editor") as Role;
+    let userRole = request.headers.get("x-ciirc-verified-role") as Role | null;
+    let userId = request.headers.get("x-ciirc-verified-user") || "usr-system";
+    let userName = "System User";
 
-    if (!hasPermission(userRole, "Create") && !hasPermission(userRole, "Edit")) {
+    if (!userRole) {
+      const session = getSessionFromRequest(request);
+      if (session.valid && session.user) {
+        userRole = session.user.role;
+        userId = session.user.id;
+        userName = session.user.name;
+      }
+    }
+
+    if (!userRole || (!hasPermission(userRole, "Create") && !hasPermission(userRole, "Edit"))) {
       return NextResponse.json(
         {
           success: false,
@@ -60,8 +103,8 @@ export async function POST(request: NextRequest) {
     }
 
     const recorded = logAuditEntry({
-      userId: body.userId || "usr-current",
-      userName: body.userName || "System User",
+      userId: body.userId || userId,
+      userName: body.userName || userName,
       userRole: userRole,
       action: body.action,
       entityType: body.entityType,

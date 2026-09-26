@@ -45,6 +45,11 @@ function AppShellContent() {
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
+      const modParam = params.get("module") as ModuleId;
+      if (modParam) {
+        setCurrentModule(modParam);
+      }
+
       if (params.get("intro") === "true" || params.get("playIntro") === "true") {
         setShowIntro(true);
         return;
@@ -57,7 +62,31 @@ function AppShellContent() {
     } catch (err) {
       console.warn("Intro check error:", err);
     }
+
+    const handlePopState = () => {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const m = (p.get("module") as ModuleId) || "dashboard";
+        setCurrentModule(m);
+      } catch {}
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  const handleSelectModule = (mod: ModuleId) => {
+    setCurrentModule(mod);
+    try {
+      const url = new URL(window.location.href);
+      if (mod === "dashboard") {
+        url.searchParams.delete("module");
+      } else {
+        url.searchParams.set("module", mod);
+      }
+      window.history.pushState({ module: mod }, "", url.toString());
+    } catch {}
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("ciirc-theme");
@@ -102,6 +131,10 @@ function AppShellContent() {
   };
 
   const handleLogout = () => {
+    try {
+      fetch("/api/v1/auth/logout", { method: "POST" }).catch(() => {});
+      document.cookie = "ciirc_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    } catch {}
     setIsAuthenticated(false);
     toast("Console Session Locked", "Signed out of CIIRC Digital Operating System.", "info");
   };
@@ -109,7 +142,7 @@ function AppShellContent() {
   const handleLoginSuccess = (user: UserAccount) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
-    setCurrentModule("dashboard");
+    handleSelectModule("dashboard");
     setShowIntro(false);
   };
 
@@ -144,7 +177,7 @@ function AppShellContent() {
         >
           <Sidebar
             currentModule={currentModule}
-            onSelectModule={(mod) => setCurrentModule(mod)}
+            onSelectModule={handleSelectModule}
             currentUser={currentUser}
             onLogout={handleLogout}
           />
@@ -166,7 +199,7 @@ function AppShellContent() {
               onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
               isDark={isDark}
               onToggleTheme={toggleTheme}
-              onSelectModule={(mod) => setCurrentModule(mod)}
+              onSelectModule={handleSelectModule}
               onReplayIntro={() => setShowIntro(true)}
               currentUser={currentUser}
               onLogout={handleLogout}
@@ -185,7 +218,7 @@ function AppShellContent() {
             {/* Dashboard */}
             {currentModule === "dashboard" && (
               <DashboardView
-                onSelectModule={(mod) => setCurrentModule(mod)}
+                onSelectModule={handleSelectModule}
                 onOpenQuickCreate={handleOpenQuickCreate}
                 isReady={!showIntro && workspaceReady}
               />
@@ -246,7 +279,7 @@ function AppShellContent() {
 
             {/* Operations Center & Data Quality */}
             {(currentModule === "operations" || currentModule === "data-quality") && (
-              <OperationsCenterView onSelectModule={(mod) => setCurrentModule(mod)} />
+              <OperationsCenterView onSelectModule={handleSelectModule} />
             )}
 
             {/* People (Faculty & Scholars) */}
@@ -290,7 +323,7 @@ function AppShellContent() {
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onSelectModule={(mod) => setCurrentModule(mod)}
+        onSelectModule={handleSelectModule}
         onOpenQuickCreate={handleOpenQuickCreate}
         toggleTheme={toggleTheme}
       />

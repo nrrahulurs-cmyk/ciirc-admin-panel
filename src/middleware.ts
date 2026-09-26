@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { getSessionFromRequest } from "@/lib/auth";
 
 // =========================================================================
 // SLIDING-WINDOW IN-MEMORY RATE LIMITER FOR NEXT.JS MIDDLEWARE / HEADLESS APIS
@@ -145,41 +146,68 @@ export function middleware(request: NextRequest) {
 
   // 4. Admin API Protection (/api/v1/admin/*)
   if (pathname.startsWith("/api/v1/admin")) {
-    const authHeader = request.headers.get("authorization");
-    const sessionCookie = request.cookies.get("ciirc_session")?.value;
-    const clientRole = request.headers.get("x-ciirc-role");
+    const session = getSessionFromRequest(request);
 
-    // Require either a bearer token, valid session cookie, or authorized internal role
-    const isAuthorized =
-      (authHeader && authHeader.startsWith("Bearer ")) ||
-      sessionCookie === "active" ||
-      clientRole === "Super Admin" ||
-      clientRole === "Administrator" ||
-      clientRole === "Research Director";
-
-    if (!isAuthorized) {
+    if (!session.valid || !session.user) {
       return new NextResponse(
         JSON.stringify({
           success: false,
           error: {
-            code: "UNAUTHORIZED_ACCESS",
-            message: "Elevated institutional credentials required to access this endpoint.",
+            code: session.error === "EXPIRED" ? "SESSION_EXPIRED" : "UNAUTHORIZED_ACCESS",
+            message: session.error === "EXPIRED"
+              ? "Institutional session has expired. Please sign in again."
+              : "Elevated institutional credentials required to access this endpoint.",
           },
         }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    const authorizedRoles = ["Super Admin", "Administrator", "Research Director", "Research Manager", "Content Manager", "Editor", "Reviewer", "Analyst"];
+    if (!authorizedRoles.includes(session.user.role)) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User role lacks access to administrative API.",
+          },
+        }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // Set verified identity headers for downstream routes
+    request.headers.set("x-ciirc-verified-role", session.user.role);
+    request.headers.set("x-ciirc-verified-user", session.user.id);
   }
 
-  // 5. Attach enhanced security headers on outgoing response
+  // 5. Handle OPTIONS preflight for public API routes
+  if (request.method === "OPTIONS" && pathname.startsWith("/api/v1/")) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, x-ciirc-csrf, x-requested-with",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
+  // 6. Attach enhanced security and CORS headers on outgoing response
   const response = NextResponse.next();
+  if (pathname.startsWith("/api/v1/public/")) {
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  }
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "SAMEORIGIN");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:;"
+    "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https:;"
   );
 
   return response;

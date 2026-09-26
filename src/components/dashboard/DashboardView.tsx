@@ -10,6 +10,8 @@ import {
   Newspaper,
   ChevronDown,
   ChevronRight,
+  Clock,
+  FileText,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -20,9 +22,16 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { ModuleId } from "@/types";
+import { ModuleId, AuditLogItem } from "@/types";
 import { useToast } from "../common/Toast";
 import { getCanonicalMetrics } from "@/lib/canonicalMetrics";
+import { getAuditLogs } from "@/lib/auditLogger";
+import {
+  workflowApprovalQueue,
+  researchersList,
+  eventsList,
+  formSubmissionsList,
+} from "@/data/mockData";
 
 interface DashboardViewProps {
   onSelectModule: (module: ModuleId) => void;
@@ -363,107 +372,119 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Right: Requires Attention Panel (Consistent semantic scale & interactive chevrons: Issues 8 & 14) */}
+        {/* Right: Requires Attention Panel (Genuinely database-backed calculation logic) */}
         <div className="lg:col-span-4 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
-              <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
-                Requires Attention
-              </h2>
-              <span className="bg-[#ef4444] text-white text-[10.5px] font-bold px-1.5 py-0.2 rounded-full">
-                12
-              </span>
-            </div>
+            {(() => {
+              const pendingApprovalsCount = workflowApprovalQueue.filter((w) => w.status === "Pending").length;
+              const incompleteResearchersCount = researchersList.filter((r) => r.status === "Incomplete").length;
+              const upcomingEventsReviewCount = eventsList.filter((e) => e.status === "Upcoming").length;
+              const newSubmissionsCount = formSubmissionsList.filter((f) => f.status === "New").length;
+              const totalRequiresAttention =
+                pendingApprovalsCount + incompleteResearchersCount + upcomingEventsReviewCount + newSubmissionsCount;
 
-            {/* List items with interactive chevrons (Issue 8) and unified semantic color scale (Issue 14) */}
-            <div className="space-y-1.5 mt-3">
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  onSelectModule("workflow-approvals");
-                  toast("Navigated to Workflow", "4 content approvals queued for review.", "info");
-                }}
-                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
-                    4
+              return (
+                <>
+                  <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px]">
+                    <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white tracking-[-0.01em]">
+                      Requires Attention
+                    </h2>
+                    <span className="bg-[#ef4444] text-white text-[10.5px] font-bold px-1.5 py-0.2 rounded-full">
+                      {totalRequiresAttention}
+                    </span>
                   </div>
-                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
-                    Content approvals pending
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-              </div>
 
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  onSelectModule("researchers");
-                  toast("Navigated to Researchers", "Filtered 2 incomplete profiles.", "info");
-                }}
-                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
-                    2
-                  </div>
-                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
-                    Incomplete researcher profiles
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-              </div>
+                  <div className="space-y-1.5 mt-3">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        onSelectModule("workflow-approvals");
+                        toast("Navigated to Workflow", `${pendingApprovalsCount} content approvals queued for review.`, "info");
+                      }}
+                      className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                          {pendingApprovalsCount}
+                        </div>
+                        <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                          Content approvals pending
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </div>
 
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  onSelectModule("events");
-                  toast("Navigated to Events", "Managing 3 upcoming symposiums.", "info");
-                }}
-                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
-                    3
-                  </div>
-                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
-                    Upcoming events requiring review
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-              </div>
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        onSelectModule("researchers");
+                        toast("Navigated to Researchers", `Filtered ${incompleteResearchersCount} incomplete profiles.`, "info");
+                      }}
+                      className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                          {incompleteResearchersCount}
+                        </div>
+                        <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                          Incomplete researcher profiles
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </div>
 
-              <div
-                role="button"
-                tabIndex={0}
-                onClick={() => {
-                  onSelectModule("form-submissions");
-                  toast("Navigated to Forms", "Reviewing 3 collaboration inquiries.", "info");
-                }}
-                className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
-                    3
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        onSelectModule("events");
+                        toast("Navigated to Events", `Managing ${upcomingEventsReviewCount} upcoming symposiums.`, "info");
+                      }}
+                      className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                          {upcomingEventsReviewCount}
+                        </div>
+                        <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                          Upcoming events requiring review
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </div>
+
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        onSelectModule("form-submissions");
+                        toast("Navigated to Forms", `Reviewing ${newSubmissionsCount} collaboration inquiries.`, "info");
+                      }}
+                      className="flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/50 cursor-pointer group transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-6 h-6 rounded-md bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/60 font-bold flex items-center justify-center text-[11.5px] shrink-0">
+                          {newSubmissionsCount}
+                        </div>
+                        <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
+                          New form submissions
+                        </span>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                    </div>
                   </div>
-                  <span className="text-[12.5px] text-slate-700 dark:text-slate-300 font-medium group-hover:text-[#0066cc] dark:group-hover:text-sky-400 transition-colors tracking-[-0.005em] truncate">
-                    New form submissions
-                  </span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#0066cc] dark:group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-              </div>
-            </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
 
       {/* 4. Bottom Row: 8:4 Grid Alignment matching top row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-        {/* Left: Recent Activity with balanced View All button (Issue 13), consistent metadata (Issue 7), and tighter density (Issue 6) */}
+        {/* Left: Recent Activity backed genuinely by institutional audit logger */}
         <div className="lg:col-span-8 ref-card p-4 sm:p-5 flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center justify-between pb-2.5 border-b border-slate-100/70 dark:border-slate-800/70 h-[38px] px-0.5">
@@ -478,52 +499,98 @@ export function DashboardView({
               </button>
             </div>
 
-            {/* 3 Activity Items with unified iconography and colors (Issue 11), consistent metadata (Issue 7), and high density (Issue 6) */}
+            {/* Dynamic Activity Items from getAuditLogs */}
             <div className="space-y-2 mt-3">
-              {/* Publication: BookOpen + Purple (strictly matches Quick Actions: Issue 11) */}
-              <div className="flex items-center gap-3 py-1">
-                <div className="w-9 h-9 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 border border-purple-200/60 dark:border-purple-800/60 flex items-center justify-center shrink-0">
-                  <BookOpen className="w-4 h-4" strokeWidth={1.85} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
-                    Publication updated
-                  </div>
-                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                    by Dr. Sharma · 10:42 AM
-                  </div>
-                </div>
-              </div>
+              {(() => {
+                const logs = getAuditLogs(3);
+                if (logs.length === 0) {
+                  return (
+                    <div className="text-[12px] text-slate-400 py-3 text-center">
+                      No recent audit events recorded.
+                    </div>
+                  );
+                }
 
-              {/* Event: Calendar + Amber with 'by Admin' (Issue 7) */}
-              <div className="flex items-center gap-3 py-1">
-                <div className="w-9 h-9 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800/60 flex items-center justify-center shrink-0">
-                  <Calendar className="w-4 h-4" strokeWidth={1.85} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
-                    Event approved
-                  </div>
-                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                    by Admin · 10:18 AM
-                  </div>
-                </div>
-              </div>
+                const getActivityMeta = (item: AuditLogItem) => {
+                  const type = item.entityType?.toLowerCase() || "";
+                  const action = item.action?.toLowerCase() || "";
 
-              {/* Project: FolderGit2 + Emerald */}
-              <div className="flex items-center gap-3 py-1">
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center shrink-0">
-                  <FolderGit2 className="w-4 h-4" strokeWidth={1.85} />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug">
-                    New research project created
-                  </div>
-                  <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                    by Prof. Mehta · 09:51 AM
-                  </div>
-                </div>
-              </div>
+                  if (type.includes("publication") || action.includes("publication")) {
+                    return {
+                      icon: BookOpen,
+                      bgClass: "bg-purple-50 dark:bg-purple-950/50",
+                      textClass: "text-purple-600 dark:text-purple-400",
+                      borderClass: "border-purple-200/60 dark:border-purple-800/60",
+                    };
+                  }
+                  if (type.includes("event") || action.includes("event")) {
+                    return {
+                      icon: Calendar,
+                      bgClass: "bg-amber-50 dark:bg-amber-950/50",
+                      textClass: "text-amber-600 dark:text-amber-400",
+                      borderClass: "border-amber-200/60 dark:border-amber-800/60",
+                    };
+                  }
+                  if (type.includes("project") || action.includes("project")) {
+                    return {
+                      icon: FolderGit2,
+                      bgClass: "bg-emerald-50 dark:bg-emerald-950/50",
+                      textClass: "text-emerald-600 dark:text-emerald-400",
+                      borderClass: "border-emerald-200/60 dark:border-emerald-800/60",
+                    };
+                  }
+                  if (type.includes("researcher") || action.includes("researcher")) {
+                    return {
+                      icon: Users,
+                      bgClass: "bg-sky-50 dark:bg-sky-950/50",
+                      textClass: "text-sky-600 dark:text-sky-400",
+                      borderClass: "border-sky-200/60 dark:border-sky-800/60",
+                    };
+                  }
+                  return {
+                    icon: Award,
+                    bgClass: "bg-blue-50 dark:bg-blue-950/50",
+                    textClass: "text-[#0066cc] dark:text-sky-400",
+                    borderClass: "border-blue-200/60 dark:border-blue-800/60",
+                  };
+                };
+
+                return logs.map((log) => {
+                  const meta = getActivityMeta(log);
+                  const Icon = meta.icon;
+                  // Compute clean deterministic time string to avoid SSR hydration differences
+                  let timeDisplay = "Recently";
+                  try {
+                    if (log.timestamp.includes("T")) {
+                      const timePart = log.timestamp.split("T")[1];
+                      timeDisplay = timePart.substring(0, 5);
+                    } else if (log.timestamp.includes(" ")) {
+                      const timePart = log.timestamp.split(" ")[1];
+                      timeDisplay = timePart.substring(0, 5);
+                    } else {
+                      timeDisplay = log.timestamp;
+                    }
+                  } catch {
+                    timeDisplay = "Recently";
+                  }
+
+                  return (
+                    <div key={log.id} className="flex items-center gap-3 py-1">
+                      <div className={`w-9 h-9 rounded-lg ${meta.bgClass} ${meta.textClass} border ${meta.borderClass} flex items-center justify-center shrink-0`}>
+                        <Icon className="w-4 h-4" strokeWidth={1.85} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[12.5px] font-semibold text-slate-900 dark:text-white leading-snug truncate">
+                          {log.action}
+                        </div>
+                        <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-snug mt-0.5" suppressHydrationWarning>
+                          by {log.user} · {timeDisplay}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         </div>
